@@ -14,16 +14,16 @@ import java.util.Date;
 @Component
 public class JwtTokenProvider {
 
-    @Value("${jwt.secret}")
+    // 🛠️ ĐÃ FIX: Khớp chuỗi bí mật với TokenService
+    @Value("${jwt.secret:DayLaMotKhoaBiMatDuPhongNeuKhongCoFileEnv123456}")
     private String rawSecretKey;
 
-    @Value("${jwt.issuer}")
+    @Value("${jwt.issuer:QuanLySinhVien}")
     private String expectedIssuer;
 
-    @Value("${jwt.audience}")
+    @Value("${jwt.audience:QuanLySinhVienAudience}")
     private String expectedAudience;
 
-    // 🛠️ ĐỒNG BỘ 1-1 THUẬT TOÁN SHA-256 TỪ C# PROGRAM.CS
     private SecretKey getSigningKey() {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
@@ -34,18 +34,16 @@ public class JwtTokenProvider {
         }
     }
 
-    // 🛠️ ĐÃ FIX: Đổi sang cú pháp setSigningKey() và getBody() của phiên bản cũ
     public Claims validateAndParseToken(String token) {
         return Jwts.parser()
-                .setSigningKey(getSigningKey()) // Thay cho verifyWith()
-                .parseClaimsJws(token)          // Thay cho parseSignedClaims()
-                .getBody();                     // Thay cho getPayload()
+                .setSigningKey(getSigningKey()) 
+                .parseClaimsJws(token)          
+                .getBody();                     
     }
 
-    // 🛠️ ĐÃ FIX: Ở bản cũ, getAudience() trả về thẳng kiểu String chứ không phải một Set
     public boolean isTokenValid(Claims claims) {
         String issuer = claims.getIssuer();
-        String audience = claims.getAudience(); // Đã sửa: Gọi trực tiếp chuỗi String
+        String audience = claims.getAudience(); 
         Date expiration = claims.getExpiration();
 
         boolean isExpired = expiration != null && expiration.before(new Date());

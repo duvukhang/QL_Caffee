@@ -19,7 +19,7 @@ import java.util.List;
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity // Kích hoạt @PreAuthorize("hasAnyRole(...)") ở tầng Controller
+@EnableMethodSecurity 
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
@@ -31,36 +31,41 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(csrf -> csrf.disable()) // Vô hiệu hóa CSRF cho API Stateless
-            .cors(cors -> cors.configurationSource(corsConfigurationSource())) // Kích hoạt cấu hình CORS toàn hệ thống
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Không lưu Session bên server
+            .csrf(csrf -> csrf.disable()) 
+            .cors(cors -> cors.configurationSource(corsConfigurationSource())) 
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) 
             
-            // 🛠️ PHÂN QUYỀN ENDPOINT THEO ĐÚNG MAPPING GROUP CỦA .NET PROGRAM.CS
             .authorizeHttpRequests(auth -> auth
-                // Cổng public, test và tài liệu Swagger được phép truy cập tự do công cộng
-                .requestMatchers("/public/**", "/test/**", "/", "/index.html", "/static/**", "/v3/api-docs/**", "/swagger-ui/**").permitAll()
+                .requestMatchers(
+                    "/", 
+                    "/*.html", 
+                    "/web/**",
+                    "/api/auth/**",  // 🛠️ ĐÃ FIX: MỞ KHÓA API ĐĂNG NHẬP, ĐĂNG KÝ
+                    "/admin/*.html", 
+                    "/manager/*.html", 
+                    "/cashier/*.html",
+                    "/css/**",
+                    "/js/**",
+                    "/uploads/**", 
+                    "/public/**", 
+                    "/test/**", 
+                    "/v3/api-docs/**", 
+                    "/swagger-ui/**"
+                ).permitAll()
                 
-                // Ép điều kiện khớp chuỗi phân quyền chính xác tuyệt đối (Admin, Manager, Cashier)
-                .requestMatchers("/admin/**").hasAuthority("Admin")
-                .requestMatchers("/manager/**").hasAuthority("Manager")
-                .requestMatchers("/cashier/**").hasAuthority("Cashier")
-                
-                // Mọi request còn lại bắt buộc phải truyền Token hợp lệ mới cho qua
                 .anyRequest().authenticated()
             )
-            // Đặt bộ lọc kiểm tra JWT Token lên trước khi thực hiện phân quyền truy cập
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
-    // 🛠️ ĐỒNG BỘ CẤU HÌNH DỊCH VỤ CORS (Cho phép mọi nguồn gọi tự do giống .NET)
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(Collections.singletonList("*")); // AllowAnyOrigin
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")); // AllowAnyMethod
-        configuration.setAllowedHeaders(Collections.singletonList("*")); // AllowAnyHeader
+        configuration.setAllowedOriginPatterns(Collections.singletonList("*"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+        configuration.setAllowedHeaders(Collections.singletonList("*"));
         configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
@@ -68,7 +73,6 @@ public class SecurityConfig {
         return source;
     }
 
-    // 🛠️ ĐỒNG BỘ CƠ CHẾ MÃ HÓA MẬT KHẨU BCRYPT VỚI WORKFACTOR = 9 TỰ ĐỘNG
     @Bean
     public PasswordEncoder passwordEncoder() {
         String envWorkFactor = System.getenv("WorkFactor");

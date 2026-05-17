@@ -17,7 +17,8 @@ import java.util.UUID;
 @Service
 public class TokenService {
 
-    @Value("${env.JWT_secret:DayLaMotKhoaBiMatDuPhongNeuKhongCoFileEnv123456}")
+    // 🛠️ ĐÃ FIX: Đồng bộ tuyệt đối biến môi trường giống JwtTokenProvider
+    @Value("${jwt.secret:DayLaMotKhoaBiMatDuPhongNeuKhongCoFileEnv123456}")
     private String jwtSecret;
 
     @Value("${jwt.issuer:QuanLySinhVien}")
@@ -26,7 +27,7 @@ public class TokenService {
     @Value("${jwt.audience:QuanLySinhVienAudience}")
     private String audience;
 
-    @Value("${jwt.accessTokenMinutes:15}")
+    @Value("${jwt.accessTokenMinutes:600}") // Tăng thời gian sống lên 10 tiếng để dễ Test
     private int accessTokenMinutes;
 
     public static class TokenPair {
@@ -43,21 +44,25 @@ public class TokenService {
 
     public TokenPair createTokenPair(int userID, String role) {
         try {
-            // TÁI HIỆN LOGIC C#: Băm chuỗi secret key bằng SHA-256 giống hệt C# cũ của bạn
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             byte[] keyBytes = digest.digest(jwtSecret.getBytes(StandardCharsets.UTF_8));
             var signingKey = Keys.hmacShaKeyFor(keyBytes);
 
+            String normalizedRole = "";
+            if (role != null && !role.isEmpty()) {
+                normalizedRole = role.substring(0, 1).toUpperCase() + role.substring(1).toLowerCase();
+            }
+
             Map<String, Object> claims = new HashMap<>();
-            claims.put("role", role); // Lưu Role vào claim (Spring Security Filter sẽ đọc ra)
+            claims.put("role", normalizedRole); 
 
             Date now = new Date();
             Date expiryDate = new Date(now.getTime() + (long) accessTokenMinutes * 60 * 1000);
 
             String accessTokenString = Jwts.builder()
                     .setClaims(claims)
-                    .setSubject(String.valueOf(userID)) // Sub tương đương UserID
-                    .setId(UUID.randomUUID().toString()) // Jti tương đương Guid.NewGuid()
+                    .setSubject(String.valueOf(userID)) 
+                    .setId(UUID.randomUUID().toString()) 
                     .setIssuer(issuer)
                     .setAudience(audience)
                     .setIssuedAt(now)

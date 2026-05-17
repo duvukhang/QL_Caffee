@@ -1,10 +1,8 @@
 package com.example.demo.Service.SQL.Product;
 
 import java.util.UUID;
-
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import com.example.demo.Models.Product;
 import com.example.demo.Models.SubCategory;
 import com.example.demo.Repositories.ProductRepository;
@@ -22,14 +20,16 @@ public class SqlProductServiceImpl implements SqlProductService {
     }
 
     @Override
-    @Transactional // Tự động Commit/Rollback
+    @Transactional 
     public Product createProducts(Product spMoi, String imgPath) {
-        SubCategory subCategory = subCategoryRepository.findById(spMoi.getSubcategory().getCategoryId())
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy danh mục con"));
+        // Lấy đúng Khóa chính (SubCategory)
+        SubCategory subCategory = subCategoryRepository.findById(spMoi.getSubcategory().getSubCategory())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy mã danh mục: " + spMoi.getSubcategory().getSubCategory()));
 
         spMoi.setProductId(generateId("SP"));
         spMoi.setImg(imgPath);
-        spMoi.setSubcategory(subCategory); // JPA quản lý qua Object thay vì ID
+        spMoi.setStatus("Kinh doanh");
+        spMoi.setSubcategory(subCategory); 
 
         return productRepository.save(spMoi);
     }
@@ -37,15 +37,12 @@ public class SqlProductServiceImpl implements SqlProductService {
     @Override
     @Transactional
     public int softDeleteProduct(String productId) {
-        if (productId == null || productId.isEmpty())
-            return 500;
-
+        if (productId == null || productId.isEmpty()) return 500;
         Product sp = productRepository.findById(productId).orElse(null);
-        if (sp == null)
-            return 404;
-
+        if (sp == null) return 404;
+        
         sp.setStatus("Ngưng Kinh Doanh");
-        productRepository.save(sp); // Save thay cho EntityState.Modified
+        productRepository.save(sp); 
         return 200;
     }
 

@@ -26,41 +26,34 @@ import java.util.Map;
 public class WarehouseManagerController {
 
     private final SqlWarehouseImportService sqlPhieuNhapKhoService;
-    private final SysUserRepository sysUserRepository;
     private final StockRepository stockRepository;
     private final InventoryRecordRepository inventoryRecordRepository;
 
-    public WarehouseManagerController(SqlWarehouseImportService sqlPhieuNhapKhoService, 
-                                      SysUserRepository sysUserRepository, 
-                                      StockRepository stockRepository, 
-                                      InventoryRecordRepository inventoryRecordRepository) {
+    public WarehouseManagerController(SqlWarehouseImportService sqlPhieuNhapKhoService,
+            StockRepository stockRepository,
+            InventoryRecordRepository inventoryRecordRepository) {
         this.sqlPhieuNhapKhoService = sqlPhieuNhapKhoService;
-        this.sysUserRepository = sysUserRepository;
         this.stockRepository = stockRepository;
         this.inventoryRecordRepository = inventoryRecordRepository;
     }
 
     @GetMapping("/Detail")
     public ResponseEntity<?> getDetailKho() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        Sysuser manager = sysUserRepository.findById(Integer.parseInt(auth.getName()))
-                .orElseThrow(() -> new RuntimeException("Fake token"));
+        // ĐÃ BỎ: Check StoreId
+        // Lấy tất cả hàng trong kho thay vì của chi nhánh
+        List<Stock> stocks = stockRepository.findAll();
 
-        String storeId = (manager.getStore() != null) ? manager.getStore().getStoreId() : null;
-
-        List<Stock> tonKho = stockRepository.findByInventory_StoreId(storeId);
-        
         List<Map<String, Object>> stockList = new ArrayList<>();
-        final Object[] khoId = {0};
+        final Object[] khoId = { 0 };
 
-        tonKho.forEach(item -> {
+        stocks.forEach(item -> {
             Map<String, Object> map = new HashMap<>();
             if (item.getGood() != null) {
                 map.put("GoodId", item.getGood().getGoodId());
                 map.put("GoodName", item.getGood().getGoodName());
                 map.put("UnitName", item.getGood().getUnitName());
             }
-            
+
             Object inStockVal = 0;
             try {
                 inStockVal = item.getClass().getMethod("getInStock").invoke(item);
@@ -74,13 +67,14 @@ public class WarehouseManagerController {
             map.put("InStock", inStockVal);
             map.put("Status", item.getStatus());
             stockList.add(map);
-            
+
             try {
                 khoId[0] = item.getClass().getMethod("getInventoryId").invoke(item);
             } catch (Exception e) {
                 try {
                     khoId[0] = item.getClass().getMethod("getInventoryid").invoke(item);
-                } catch (Exception ex) {}
+                } catch (Exception ex) {
+                }
             }
         });
 
@@ -98,11 +92,12 @@ public class WarehouseManagerController {
         try {
             // Gọi Service thực thi Stored Procedure qua cấu trúc mảng TVP
             Inventoryrecord res = sqlPhieuNhapKhoService.CreateInventoryRecords(requests, inventoryId, typeId);
-            
+
             if (res != null) {
                 List<Map<String, Object>> tonKhoResponses = new ArrayList<>();
-                
-                // 🛠️ ĐÃ CHUẨN HÓA: Duyệt mảng trực tiếp thông qua hàm getRecorDetails() từ Model xịn
+
+                // 🛠️ ĐÃ CHUẨN HÓA: Duyệt mảng trực tiếp thông qua hàm getRecorDetails() từ
+                // Model xịn
                 if (res.getRecorDetails() != null) {
                     res.getRecorDetails().forEach(detailItem -> {
                         Map<String, Object> map = new HashMap<>();
@@ -115,29 +110,35 @@ public class WarehouseManagerController {
                             }
                             map.put("InStock", detailItem.getQuantity());
                             tonKhoResponses.add(map);
-                        } catch (Exception e) {}
+                        } catch (Exception e) {
+                        }
                     });
                 }
 
-                // 🛠️ ĐÃ CHUẨN HÓA: Đi đường vòng qua Object Inventory liên kết để lấy ID chi nhánh công nghiệp
+                // 🛠️ ĐÃ CHUẨN HÓA: Đi đường vòng qua Object Inventory liên kết để lấy ID chi
+                // nhánh công nghiệp
                 Object safeInventoryId = 0;
                 if (res.getInventory() != null) {
                     try {
-                        safeInventoryId = res.getInventory().getClass().getMethod("getInventoryId").invoke(res.getInventory());
+                        safeInventoryId = res.getInventory().getClass().getMethod("getInventoryId")
+                                .invoke(res.getInventory());
                     } catch (Exception e) {
                         try {
-                            safeInventoryId = res.getInventory().getClass().getMethod("getInventoryid").invoke(res.getInventory());
-                        } catch (Exception ex) {}
+                            safeInventoryId = res.getInventory().getClass().getMethod("getInventoryid")
+                                    .invoke(res.getInventory());
+                        } catch (Exception ex) {
+                        }
                     }
                 }
 
-                // Tạo duy nhất 1 Map phản hồi, dọn sạch hoàn toàn các đoạn code trùng lặp/thừa phía sau
+                // Tạo duy nhất 1 Map phản hồi, dọn sạch hoàn toàn các đoạn code trùng lặp/thừa
+                // phía sau
                 Map<String, Object> responseBody = new HashMap<>();
                 responseBody.put("RecordId", res.getRecordsId());
                 responseBody.put("InventoryId", safeInventoryId);
                 responseBody.put("AdmissionDate", res.getAdmissionDate());
                 responseBody.put("Detail", tonKhoResponses);
-                
+
                 return ResponseEntity.ok(responseBody);
             }
             throw new RuntimeException("Can't update Stock in Database");
@@ -157,11 +158,12 @@ public class WarehouseManagerController {
             Map<String, Object> val = new HashMap<>();
             val.put("RecordId", item.getRecordsId());
             val.put("AdmissionDate", item.getAdmissionDate());
-            
-            // 🛠️ ĐÃ CHUẨN HÓA: Truy xuất mã loại qua Object item.getType() liên kết của Model mới
+
+            // 🛠️ ĐÃ CHUẨN HÓA: Truy xuất mã loại qua Object item.getType() liên kết của
+            // Model mới
             Object currentTypeId = null;
             String currentTypeName = null;
-            
+
             if (item.getType() != null) {
                 currentTypeName = item.getType().getTypeName();
                 try {
@@ -169,7 +171,8 @@ public class WarehouseManagerController {
                 } catch (Exception e) {
                     try {
                         currentTypeId = item.getType().getClass().getMethod("getTypeid").invoke(item.getType());
-                    } catch (Exception ex) {}
+                    } catch (Exception ex) {
+                    }
                 }
             }
             val.put("TypeId", currentTypeId);

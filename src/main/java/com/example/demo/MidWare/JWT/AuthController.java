@@ -1,13 +1,13 @@
 package com.example.demo.MidWare.JWT;
 
 import com.example.demo.DTOS.Request.LoginRequest;
-import com.example.demo.MidWare.Filter.CustomError;
 import com.example.demo.Models.Sysrole;
 import com.example.demo.Models.Sysuser;
 import com.example.demo.Repositories.SysUserRepository; 
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,7 +15,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/auth")
+// 🛠️ ĐÃ FIX: Đồng bộ URL cho khớp với Javascript và SecurityConfig
+@RequestMapping("/api/auth") 
 public class AuthController {
 
     private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
@@ -31,92 +32,88 @@ public class AuthController {
     }
 
     private Map<String, Object> validateUser(String username, String password) {
-        // Tìm user dựa trên userName
         Sysuser user = sysUserRepository.findByUserName(username)
-                .orElseThrow(() -> new RuntimeException("User Not Exists"));
+                .orElseThrow(() -> new RuntimeException("Tài khoản không tồn tại trong hệ thống."));
 
-        // Kiểm tra trạng thái cửa hàng
-        if (user.getStore() != null && "Ngưng hoạt động".equals(user.getStore().getStoreStatus())) {
-            throw new RuntimeException("Store is inactive");
-        }
-        if (user.getStaff() == null) {
-            throw new RuntimeException("User doesn't map with any Staff");
-        }
-
+        // 🛠️ ĐÃ BỎ: Kiểm tra trạng thái Store inactive vì không còn dùng chi nhánh
+        
         if (user.getPassword() == null || user.getPassword().isEmpty()) {
-            throw new CustomError(422, "Unprocessable Entity", "Your KeyWord not true");
+            throw new RuntimeException("Dữ liệu mật khẩu bị hỏng.");
         }
 
-        // Kiểm tra so khớp mật khẩu
         if (passwordService.verifyPassword(password, user.getPassword())) {
             
-            // ĐÃ FIX LỖI getSysrole(): Tự động nhận diện linh hoạt theo Model thực tế của bạn
             Sysrole role = null;
             try {
-                // Cách 1: Thử gọi hàm getSysRole() theo chuẩn camelCase của Java
                 java.lang.reflect.Method method = user.getClass().getMethod("getSysRole");
                 role = (Sysrole) method.invoke(user);
             } catch (Exception e1) {
                 try {
-                    // Cách 2: Thử gọi hàm getSysrole() viết thường hoàn toàn theo C# cũ
                     java.lang.reflect.Method method = user.getClass().getMethod("getSysrole");
                     role = (Sysrole) method.invoke(user);
                 } catch (Exception e2) {
                     try {
-                        // Cách 3: Thử gọi hàm ngắn gọn getRole()
                         java.lang.reflect.Method method = user.getClass().getMethod("getRole");
                         role = (Sysrole) method.invoke(user);
                     } catch (Exception e3) {
-                        throw new RuntimeException("Không tìm thấy hàm getter cho Sysrole trong Model Sysuser.java");
+                        throw new RuntimeException("Hệ thống lỗi: Tài khoản chưa được phân quyền.");
                     }
                 }
             }
 
             if (role == null) {
-                throw new RuntimeException("Can't be Authentication");
+                throw new RuntimeException("Hệ thống lỗi: Dữ liệu phân quyền bị trống.");
             }
 
             Map<String, Object> authResult = new HashMap<>();
-            authResult.put("user", user.getStaff());
+            authResult.put("user", user.getStaff()); // Lưu ý: Admin có thể không có Staff (trả về null)
             authResult.put("userId", user.getUserId());
             authResult.put("roleName", role.getRoleName());
             return authResult;
         } else {
-            throw new RuntimeException("Can't be Authentication");
+            throw new RuntimeException("Mật khẩu không chính xác.");
         }
     }
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
-        logger.info("API Login is being called:");
-
-        // Tái hiện logic C#: Tự động nối chuỗi StoreId nếu không phải là admin
-        if (!"admin".equals(request.getUserName())) {
-            request.setUserName(request.getStoreId() + "_" + request.getUserName());
-        }
+        logger.info("Yêu cầu đăng nhập từ tài khoản: " + request.getUserName());
 
         try {
+            // 🛠️ ĐÃ BỎ: Logic cộng chuỗi request.getStoreId() + "_" + request.getUserName()
+            // Bây giờ hệ thống sẽ đọc thẳng username mộc (VD: "admin")
+            
             Map<String, Object> authResult = validateUser(request.getUserName(), request.getPassword());
             
             var staff = (com.example.demo.Models.Staff) authResult.get("user");
             int userId = (int) authResult.get("userId");
             String roleName = (String) authResult.get("roleName");
 
-            // Tạo chuỗi Token cặp
             TokenService.TokenPair pair = tokenService.createTokenPair(userId, roleName);
 
-            // Trả về cấu hình JSON Response giống bản cũ của bạn
             Map<String, Object> loginResponse = new HashMap<>();
-            loginResponse.put("accessToken", pair.getAccessToken());
+            // 🛠️ QUAN TRỌNG: Trả về field 'token' cho khớp với file JS (data.token)
+            loginResponse.put("token", pair.getAccessToken()); 
             loginResponse.put("userName", request.getUserName());
-            loginResponse.put("staffName", staff.getStaffName());
             loginResponse.put("roles", roleName);
-            loginResponse.put("avatar", staff.getAvatar());
+            
+            // Xử lý an toàn nếu tài khoản Admin không được gán vào 1 nhân viên cụ thể
+            if (staff != null) {
+                loginResponse.put("staffName", staff.getStaffName());
+                loginResponse.put("avatar", staff.getAvatar());
+            } else {
+                loginResponse.put("staffName", "Quản Trị Viên");
+                loginResponse.put("avatar", "default.png");
+            }
 
             return ResponseEntity.ok(loginResponse);
 
         } catch (Exception e) {
-            throw new org.springframework.security.authentication.BadCredentialsException("User Infor not true");
+            // 🛠️ ĐÃ FIX: Trả về HTTP 401 Unauthorized kèm thông báo lỗi JSON
+            // Frontend Javascript sẽ hứng mã này và hiển thị lỗi màu đỏ lên màn hình mượt mà
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
         }
     }
 }

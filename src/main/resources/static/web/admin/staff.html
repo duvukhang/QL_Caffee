@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Quản Lý Nhân Viên - CRUD</title>
+    <link rel="stylesheet" href="../../css/styleStaff.css">
+</head>
+<body>
+    <div class="sidebar">
+        <div class="brand">🏬 HỆ THỐNG HUIT PORTAL</div>
+        <ul class="sidebar-menu">
+            <li><a href="../index.html">📊 Thống Kê Tổng Quan</a></li>
+            <li><a href="../profile.html">👤 Hồ Sơ Cá Nhân</a></li>
+            <li class="active"><a href="staff.html">👥 Quản Lý Nhân Viên</a></li>
+            <li><a href="product.html">📦 Quản Lý Sản Phẩm</a></li>
+            <li><a href="../manager/kho-detail.html">📦 Xem Tồn Kho Chi Nhánh</a></li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <h2 style="color: var(--primary); margin-top:0; margin-bottom:25px;">👥 QUẢN TRỊ VIÊN - QUẢN LÝ TÀI KHOẢN NHÂN SỰ</h2>
+        
+        <div class="crud-container">
+            <div class="panel">
+                <h3 id="form-title" style="margin-top:0; color:#2563eb;">➕ THÊM NHÂN VIÊN MỚI</h3>
+                <form id="staffForm">
+                    <input type="hidden" id="txtStaffIdHidden">
+                    <div class="field"><label>Họ Và Tên</label><input type="text" id="txtName" required></div>
+                    <div class="field"><label>Mật Khẩu Hệ Thống</label><input type="password" id="txtPassword" placeholder="Nhập để đặt mới"></div>
+                    <div class="field"><label>Quyền Hạn (Role)</label>
+                        <select id="ddlRole">
+                            <option value="Manager">Manager</option>
+                            <option value="Cashier">Cashier</option>
+                        </select>
+                    </div>
+                    <div class="field"><label>Chi Nhánh (Store ID)</label><input type="text" id="txtStoreId" value="ST01"></div>
+                    <button type="button" class="btn btn-save" onclick="saveStaff()">LƯU THÔNG TIN NHÂN SỰ</button>
+                    <button type="button" class="btn" style="background:#64748b; width:100%; margin-top:5px; display:none;" id="btnCancelEdit" onclick="cancelEditMode()">Hủy Chế Độ Sửa</button>
+                </form>
+            </div>
+
+            <div class="panel">
+                <h3 style="margin-top:0; color:#475569;">📋 DANH SÁCH TÀI KHOẢN HIỆN HÀNH</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Mã NV</th>
+                            <th>Họ Và Tên</th>
+                            <th>Chức Vụ</th>
+                            <th>Mã Kho</th>
+                            <th>Hành Động</th>
+                        </tr>
+                    </thead>
+                    <tbody id="staff-tbody">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="../../js/Staff.js"></script>
+</body>
+</html>

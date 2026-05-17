@@ -37,19 +37,35 @@ public class PublicController {
         this.sysRoleRepository = sysRoleRepository;
     }
 
+    // 🛠️ HÀM HELPER: Trích xuất dữ liệu Product thành DTO thuần túy để tránh lỗi Lazy Loading
+    private Map<String, Object> mapProductToDto(Product p) {
+        Map<String, Object> dto = new HashMap<>();
+        dto.put("productId", p.getProductId());
+        dto.put("productName", p.getProductName());
+        dto.put("price", p.getPrice());
+        dto.put("img", p.getImg());
+        dto.put("status", p.getStatus());
+        dto.put("description", p.getDescription());
+        
+        if (p.getSubcategory() != null) {
+            dto.put("subcategoryId", p.getSubcategory().getSubCategory());
+            dto.put("subcategoryName", p.getSubcategory().getSubCategoryName());
+        }
+        return dto;
+    }
+
     // 1. GET /public/Product/{pageNum}/{pageSize}
     @GetMapping("/Product/{pageNum}/{pageSize}")
     public ResponseEntity<?> getProduct(@PathVariable("pageNum") int pageNum, @PathVariable("pageSize") int pageSize) {
         if (pageNum < 1) {
-            throw new IllegalArgumentException("PageNum param is Out Of Range"); // Khớp 1-1 C#
+            throw new IllegalArgumentException("PageNum param is Out Of Range");
         }
         if (pageSize > 100 || pageSize < 0) {
-            throw new IllegalArgumentException("Max page size is 100"); // Khớp 1-1 C#
+            throw new IllegalArgumentException("Max page size is 100");
         }
 
         List<Product> allProducts = productRepository.findAll();
         
-        // .OrderBy(x => x.ProductName)
         List<Product> sorted = allProducts.stream()
                 .sorted((p1, p2) -> {
                     String name1 = p1.getProductName() != null ? p1.getProductName() : "";
@@ -57,24 +73,22 @@ public class PublicController {
                     return name1.compareTo(name2);
                 }).toList();
 
-        // .Skip((pageNum - 1) * pageSize).Take(pageSize)
         int skip = (pageNum - 1) * pageSize;
         List<Product> paged = sorted.stream().skip(skip).limit(pageSize).toList();
 
         if (paged.isEmpty()) {
-            return ResponseEntity.noContent().build(); // Return NoContent()
+            return ResponseEntity.noContent().build();
         }
 
-        // Đóng gói cấu trúc dạng Item<Product> gồm Value và PathChiTiet
         List<Map<String, Object>> responseItems = new ArrayList<>();
         paged.forEach(p -> {
             Map<String, Object> itemNew = new HashMap<>();
-            itemNew.put("Value", p);
-            itemNew.put("PathChiTiet", "/ChiTiet/" + p.getProductId()); // Giữ đúng định dạng đường dẫn gốc
+            // 🛠️ ĐÃ FIX: Sử dụng hàm helper thay vì nhét thẳng thực thể p vào
+            itemNew.put("Value", mapProductToDto(p)); 
+            itemNew.put("PathChiTiet", "/ChiTiet/" + p.getProductId());
             responseItems.add(itemNew);
         });
 
-        // Khởi tạo đối tượng PageRespone trả về
         Map<String, Object> res = new HashMap<>();
         res.put("items", responseItems);
         res.put("totalCount", sorted.size());
@@ -101,36 +115,8 @@ public class PublicController {
 
         List<Product> allProducts = productRepository.findAll();
         
-        // Lọc sản phẩm bọc lót thông minh qua cả 2 cách định nghĩa model (Trường ID chuỗi đơn hoặc Object SubCategory)
         List<Product> filtered = allProducts.stream()
-                .filter(p -> {
-                    try {
-                        // Thử khả năng 1: Đọc trực tiếp biến chuỗi subcategoryId / subCategoryid
-                        try {
-                            String id = (String) p.getClass().getMethod("getSubcategoryId").invoke(p);
-                            if (id != null) return id.equals(cateId);
-                        } catch (Exception e) {
-                            try {
-                                String id = (String) p.getClass().getMethod("getSubcategoryid").invoke(p);
-                                if (id != null) return id.equals(cateId);
-                            } catch (Exception ex) {}
-                        }
-
-                        // Thử khả năng 2: Đi đường vòng nếu dự án map dạng đối tượng Object SubCategory liên kết
-                        Object sub = null;
-                        try { sub = p.getClass().getMethod("getSubcategory").invoke(p); } 
-                        catch (Exception e) { sub = p.getClass().getMethod("getSubCategory").invoke(p); }
-                        
-                        if (sub != null) {
-                            try {
-                                return cateId.equals(sub.getClass().getMethod("getSubcategoryid").invoke(sub));
-                            } catch (Exception e1) {
-                                return cateId.equals(sub.getClass().getMethod("getSubCategoryId").invoke(sub));
-                            }
-                        }
-                    } catch (Exception e) {}
-                    return false;
-                })
+                .filter(p -> p.getSubcategory() != null && cateId.equals(p.getSubcategory().getSubCategory()))
                 .sorted((p1, p2) -> {
                     String name1 = p1.getProductName() != null ? p1.getProductName() : "";
                     String name2 = p2.getProductName() != null ? p2.getProductName() : "";
@@ -138,7 +124,7 @@ public class PublicController {
                 }).toList();
 
         if (filtered.isEmpty()) {
-            throw new RuntimeException("Can't find any Product"); // Khớp lỗi KeyNotFoundException
+            throw new RuntimeException("Can't find any Product");
         }
 
         int skip = (pageNum - 1) * pageSize;
@@ -147,7 +133,8 @@ public class PublicController {
         List<Map<String, Object>> responseItems = new ArrayList<>();
         paged.forEach(p -> {
             Map<String, Object> itemNew = new HashMap<>();
-            itemNew.put("Value", p);
+            // 🛠️ ĐÃ FIX: Áp dụng hàm map DTO
+            itemNew.put("Value", mapProductToDto(p));
             itemNew.put("PathChiTiet", "/public/Product/" + p.getProductId());
             responseItems.add(itemNew);
         });
@@ -165,9 +152,11 @@ public class PublicController {
     // 3. GET /public/ProductDetail/{masp}
     @GetMapping("/ProductDetail/{masp}")
     public ResponseEntity<?> getChiTietProduct(@PathVariable("masp") String masp) {
-        Product product = productRepository.findById(masp)
-                .orElseThrow(() -> new RuntimeException("Product not exists")); // Khớp 1-1 thông điệp lỗi C#
-        return ResponseEntity.ok(product);
+        Product p = productRepository.findById(masp)
+                .orElseThrow(() -> new RuntimeException("Product not exists"));
+        
+        // 🛠️ ĐÃ FIX: Không trả về Entity p nữa, trả về map an toàn
+        return ResponseEntity.ok(mapProductToDto(p));
     }
 
     // 4. GET /public/DanhMuc
@@ -188,7 +177,6 @@ public class PublicController {
                 chaMap.put("MaLoaiDm", categoryId);
                 chaMap.put("ten", categoryName);
 
-                // Đọc danh mục con tương đương .Include(cate => cate.SubCategories) bên C#
                 java.util.Collection<?> subCategories = null;
                 try {
                     subCategories = (java.util.Collection<?>) cha.getClass().getMethod("getSubCategories").invoke(cha);
@@ -202,17 +190,10 @@ public class PublicController {
                         Map<String, Object> conMap = new HashMap<>();
                         try {
                             String subName = (String) con.getClass().getMethod("getSubCategoryName").invoke(con);
-                            String subId = (String) con.getClass().getMethod("getSubCategoryId").invoke(con);
+                            String subId = (String) con.getClass().getMethod("getSubCategory").invoke(con); // Lấy subCategory (Id)
                             conMap.put("tenDM", subName);
                             conMap.put("MaDm", subId);
-                        } catch (Exception e) {
-                            try {
-                                String subName = (String) con.getClass().getMethod("getSubcategoryname").invoke(con);
-                                String subId = (String) con.getClass().getMethod("getSubcategoryid").invoke(con);
-                                conMap.put("tenDM", subName);
-                                conMap.put("MaDm", subId);
-                            } catch (Exception ex) {}
-                        }
+                        } catch (Exception e) {}
                         subList.add(conMap);
                     });
                 }
@@ -244,12 +225,7 @@ public class PublicController {
             try {
                 storeMap.put("StoreId", s.getClass().getMethod("getStoreId").invoke(s));
                 storeMap.put("StoreName", s.getClass().getMethod("getStoreName").invoke(s));
-            } catch (Exception e) {
-                try {
-                    storeMap.put("StoreId", s.getClass().getMethod("getStoreid").invoke(s));
-                    storeMap.put("StoreName", s.getClass().getMethod("getStorename").invoke(s));
-                } catch (Exception ex) {}
-            }
+            } catch (Exception e) {}
             ls.add(storeMap);
         });
 
@@ -265,7 +241,6 @@ public class PublicController {
         sysroles.forEach(role -> {
             try {
                 String roleName = (String) role.getClass().getMethod("getRoleName").invoke(role);
-                // Loại trừ tài khoản quyền tối cao: Where(r => r.RoleName != "Admin")
                 if (roleName != null && !"Admin".equalsIgnoreCase(roleName)) {
                     Map<String, Object> roleMap = new HashMap<>();
                     String roleId = (String) role.getClass().getMethod("getRoleId").invoke(role);
@@ -273,18 +248,7 @@ public class PublicController {
                     roleMap.put("roleName", roleName);
                     respone.add(roleMap);
                 }
-            } catch (Exception e) {
-                try {
-                    String roleName = (String) role.getClass().getMethod("getRolename").invoke(role);
-                    if (roleName != null && !"Admin".equalsIgnoreCase(roleName)) {
-                        Map<String, Object> roleMap = new HashMap<>();
-                        String roleId = (String) role.getClass().getMethod("getRoleid").invoke(role);
-                        roleMap.put("roleId", roleId);
-                        roleMap.put("roleName", roleName);
-                        respone.add(roleMap);
-                    }
-                } catch (Exception ex) {}
-            }
+            } catch (Exception e) {}
         });
 
         if (respone.isEmpty()) {

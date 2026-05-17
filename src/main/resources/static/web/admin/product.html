@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Quản Lý Sản Phẩm - Toàn Diện</title>
+    <link rel="stylesheet" href="../../css/style.css">
     <style>
         :root { --primary: #b91c1c; --sidebar: #0f172a; --bg: #f1f5f9; --surface: #ffffff; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; display: flex; }
@@ -26,15 +27,13 @@
         <div class="brand">🏬 HỆ THỐNG HUIT PORTAL</div>
         <ul class="sidebar-menu">
             <li><a href="../index.html">📊 Thống Kê Tổng Quan</a></li>
-            <li><a href="../profile.html">👤 Hồ Sơ Cá Nhân</a></li>
             <li><a href="staff.html">👥 Quản Lý Nhân Viên</a></li>
             <li class="active"><a href="product.html">📦 Quản Lý Sản Phẩm</a></li>
-            <li><a href="../manager/kho-detail.html">📦 Xem Tồn Kho Chi Nhánh</a></li>
         </ul>
     </div>
 
     <div class="main-content">
-        <h2 style="color:var(--primary); margin-top:0; margin-bottom:25px;">⚙️ QUẢN TRỊ VIÊN - ĐIỀU HÀNH DANH MỤC HÀNG HÓA</h2>
+        <h2 style="color:var(--primary); margin-top:0; margin-bottom:25px;">⚙️ QUẢN LÝ DANH MỤC HÀNG HÓA</h2>
         
         <div class="wrapper">
             <div class="panel">
@@ -44,7 +43,7 @@
                     <div class="field"><label>Tên Sản Phẩm</label><input type="text" id="txtProdName" required></div>
                     <div class="field"><label>Đơn Giá (đ)</label><input type="number" id="txtPrice" value="45000"></div>
                     <div class="field"><label>Mô Tả</label><textarea id="txtDesc" rows="3"></textarea></div>
-                    <div class="field"><label>Mã Danh Mục Con (SubCategory ID)</label><input type="text" id="txtDmId" value="DM01"></div>
+                    <div class="field"><label>Mã Danh Mục (Ví dụ: DM00000001)</label><input type="text" id="txtDmId" value="DM00000001"></div>
                     <div class="field" id="image-field-wrapper"><label>Hình Ảnh Minh Họa</label><input type="file" id="fileImg" accept="image/*"></div>
                     <button type="button" class="btn-action" onclick="executeSubmitProduct()">LƯU VÀO CƠ SỞ DỮ LIỆU</button>
                     <button type="button" class="btn-action" style="background:#64748b; display:none;" id="btnCancelProductEdit" onclick="resetProductForm()">Hủy Sửa</button>
@@ -53,83 +52,107 @@
 
             <div class="panel">
                 <h3 style="margin-top: 0; color: #475569;">🗑️ DANH SÁCH & ĐIỀU CHỈNH HÀNG HÓA</h3>
-                <div id="admin-prod-list" style="max-height: 500px; overflow-y: auto;">
-                    </div>
+                <div id="admin-prod-list" style="max-height: 500px; overflow-y: auto;"></div>
             </div>
         </div>
     </div>
 
     <script>
+        const token = localStorage.getItem("token");
+
         function loadProducts() {
             fetch('/public/Product/1/100')
             .then(res => res.json())
             .then(data => {
                 const list = document.getElementById("admin-prod-list");
                 list.innerHTML = "";
-                data.items.forEach(item => {
-                    const p = item.Value;
-                    list.innerHTML += `
-                        <div class="prod-row">
-                            <div>
-                                <span style="font-weight:bold;">${p.productName}</span><br>
-                                <span style="font-size:12px; color:#64748b;">Mã: ${p.productId} | Giá: ${p.price.toLocaleString()}đ</span>
-                            </div>
-                            <div>
-                                <button style="background:#f59e0b; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; font-size:12px;" onclick="triggerEditMode('${p.productId}', '${p.productName}', ${p.price}, '${p.description || ''}', '${p.subcategoryId || ''}')">Sửa</button>
-                                <button style="background:#fee2e2; color:#ef4444; border:1px solid #fee2e2; padding:4px 8px; border-radius:4px; cursor:pointer; font-size:12px;" onclick="softDelete('${p.productId}')">Xóa mềm</button>
-                            </div>
-                        </div>
-                    `;
-                });
+                if (data && data.items) {
+                    data.items.forEach(item => {
+                        const p = item.Value;
+                        if(p.status !== "Ngưng Kinh Doanh") {
+                            const safeName = p.productName ? p.productName.replace(/'/g, "\\'") : "";
+                            const safeDesc = p.description ? p.description.replace(/'/g, "\\'") : "";
+                            list.innerHTML += `
+                                <div class="prod-row">
+                                    <div>
+                                        <span style="font-weight:bold;">${p.productName}</span><br>
+                                        <span style="font-size:12px; color:#64748b;">Mã: ${p.productId} | Giá: ${Number(p.price).toLocaleString('vi-VN')}đ</span>
+                                    </div>
+                                    <div>
+                                        <button style="background:#f59e0b; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;" onclick="triggerEditMode('${p.productId}', '${safeName}', ${p.price}, '${safeDesc}')">Sửa</button>
+                                        <button style="background:#ef4444; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;" onclick="softDelete('${p.productId}')">Xóa</button>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                    });
+                }
             });
         }
 
-        function triggerEditMode(id, name, price, desc, dmId) {
+        function triggerEditMode(id, name, price, desc) {
             document.getElementById("panel-form-title").innerText = "⚙️ CẬP NHẬT SẢN PHẨM";
-            document.getElementById("txtIdHidden").value = id;
+            document.getElementById("txtProdIdHidden").value = id; 
             document.getElementById("txtProdName").value = name;
             document.getElementById("txtPrice").value = price;
             document.getElementById("txtDesc").value = desc;
-            document.getElementById("txtDmId").value = dmId;
-            document.getElementById("image-field-wrapper").style.display = "none"; // Sửa dữ liệu không cần ép up lại ảnh cũ
+            document.getElementById("image-field-wrapper").style.display = "none";
             document.getElementById("btnCancelProductEdit").style.display = "block";
         }
 
         function resetProductForm() {
             document.getElementById("panel-form-title").innerText = "➕ THÊM MỚI SẢN PHẨM";
             document.getElementById("formProduct").reset();
-            document.getElementById("txtIdHidden").value = "";
-            document.getElementById("image-field-wrapper").style.display = "block";
+            document.getElementById("txtProdIdHidden").value = ""; 
+            document.getElementById("image-field-wrapper").style.display = "flex";
             document.getElementById("btnCancelProductEdit").style.display = "none";
         }
 
         function executeSubmitProduct() {
-            const id = document.getElementById("txtIdHidden").value;
+            const id = document.getElementById("txtProdIdHidden").value;
+            
             if (id) {
-                // Logic PUT để sửa dữ liệu JSON phẳng
+                // API SỬA SẢN PHẨM
                 fetch(`/Admin/Product/Update/${id}`, {
                     method: 'PUT',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': localStorage.getItem("token") },
-                    body: JSON.stringify({ productName: document.getElementById("txtProdName").value, price: document.getElementById("txtPrice").value, description: document.getElementById("txtDesc").value })
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                    body: JSON.stringify({
+                        productName: document.getElementById("txtProdName").value,
+                        price: document.getElementById("txtPrice").value,
+                        description: document.getElementById("txtDesc").value
+                    })
                 }).then(() => { alert("Cập nhật thành công!"); resetProductForm(); loadProducts(); });
             } else {
-                // Logic POST thêm mới kèm Multipartfile ảnh như file cũ của Khang
+                // API THÊM SẢN PHẨM
+                const fileInput = document.getElementById("fileImg");
                 const formData = new FormData();
                 formData.append("productname", document.getElementById("txtProdName").value);
                 formData.append("donGia", document.getElementById("txtPrice").value);
                 formData.append("mota", document.getElementById("txtDesc").value);
                 formData.append("dmid", document.getElementById("txtDmId").value);
-                formData.append("file", document.getElementById("fileImg").files[0]);
+                formData.append("file", fileInput.files[0]);
 
-                fetch('/Admin/Product', { method: 'POST', headers: { 'Authorization': localStorage.getItem("token") }, body: formData })
-                .then(() => { alert("Thêm sản phẩm thành công!"); resetProductForm(); loadProducts(); });
+                fetch('/Admin/Product', { 
+                    method: 'POST', 
+                    headers: { 'Authorization': 'Bearer ' + token }, 
+                    body: formData 
+                }).then(async res => {
+                    if(!res.ok) {
+                        const err = await res.json().catch(()=>({}));
+                        alert("Thất bại: " + (err.message || "Lỗi khóa ngoại Danh Mục"));
+                    } else {
+                        alert("Thêm sản phẩm thành công!"); 
+                        resetProductForm(); loadProducts(); 
+                    }
+                });
             }
         }
 
         function softDelete(id) {
-            if(confirm("Ẩn sản phẩm này khỏi thực đơn?")) {
-                fetch(`/Admin/Product/SoftDelete/${id}`, { method: 'PUT', headers: { 'Authorization': localStorage.getItem("token") } })
-                .then(() => { alert("Đã xóa mềm!"); loadProducts(); });
+            if(confirm("Bạn có chắc chắn muốn xóa sản phẩm này?")) {
+                fetch(`/Admin/Product/SoftDelete/${id}`, { 
+                    method: 'PUT', headers: { 'Authorization': 'Bearer ' + token } 
+                }).then(() => { alert("Đã xóa!"); loadProducts(); });
             }
         }
 

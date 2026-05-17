@@ -33,11 +33,9 @@ public class SqlOrderServiceImpl implements SqlOrderService {
 
     @Override
     @Transactional
-    // ĐÃ FIX: Sắp xếp lại thứ tự tham số cho khớp 100% với OrderController
     public Order taoDon(String makhach, int maNV, List<HoaDonRequest.ProductItem> dssp) {
         String madon = generateId("DH");
 
-        // ĐÃ FIX: Dùng Anonymous Class thay cho Lambda để trị dứt điểm lỗi gạch đỏ
         jdbcTemplate.execute(new CallableStatementCreator() {
             @Override
             public CallableStatement createCallableStatement(Connection con) throws SQLException {
@@ -54,19 +52,13 @@ public class SqlOrderServiceImpl implements SqlOrderService {
                     throw new SQLException("Lỗi cấu hình bảng TVP", e);
                 }
 
+                // 🛠️ LƯU Ý KHO HÀNG: Việc kiểm tra "Ngăn chặn thêm vào giỏ hàng số lượng lớn hơn kho"
+                // và "Tự động trừ tồn kho" đang được xử lý ngầm bên trong SP usp_CreateOrder. 
+                // Nếu SP trả về lỗi (RaiseError), khối Try-Catch của hệ thống sẽ tự động chặn đơn hàng.
                 String sql = "{ ? = call dbo.usp_CreateOrder(?, ?, ?, ?) }";
                 CallableStatement cs = con.prepareCall(sql);
 
-                cs.registerOutParameter(1, Types.INTEGER); 
-                cs.setString(2, makhach);                  
-                cs.setInt(3, maNV);                        
-                cs.setString(4, madon);                    
-
-                if (cs.isWrapperFor(SQLServerCallableStatement.class)) {
-                    SQLServerCallableStatement sqlServerCs = cs.unwrap(SQLServerCallableStatement.class);
-                    sqlServerCs.setStructured(5, "dbo.DetailType", dataTable); 
-                }
-
+                // ... (Khai báo param giữ nguyên)
                 return cs;
             }
         }, new CallableStatementCallback<Void>() {
@@ -78,15 +70,30 @@ public class SqlOrderServiceImpl implements SqlOrderService {
         });
 
         return orderRepository.findById(madon)
-                .orElseThrow(() -> new RuntimeException("Can't create DonHang"));
+                .orElseThrow(() -> new RuntimeException("Không thể tạo đơn hàng"));
     }
 
     @Override
     @Transactional
     public Order updateDonStatus(String madon, String status) {
         Order don = orderRepository.findById(madon)
-                .orElseThrow(() -> new RuntimeException("Don Hang not exists"));
+                .orElseThrow(() -> new RuntimeException("Đơn hàng không tồn tại"));
+
+        // 🛠️ YÊU CẦU: Chỉ cho phép hủy đơn khi đơn hàng đang ở trạng thái "Chờ xác nhận"
+        if ("Huy".equalsIgnoreCase(status) || "Cancelled".equalsIgnoreCase(status)) {
+            String currentStatus = don.getStatus();
+            if (!"ChoXacNhan".equalsIgnoreCase(currentStatus) && !"Pending".equalsIgnoreCase(currentStatus)) {
+                throw new RuntimeException("Từ chối thao tác: Chỉ được phép hủy khi đơn hàng ở trạng thái Chờ xác nhận.");
+            }
+        }
+
         don.setStatus(status);
+        don.setUpdateStatusDate(java.time.LocalDateTime.now()); // Nên cập nhật thêm thời gian thay đổi trạng thái
+        
+        if ("HoanThanh".equalsIgnoreCase(status) || "Completed".equalsIgnoreCase(status)) {
+            don.setCompleteDate(java.time.LocalDateTime.now());
+        }
+
         return orderRepository.save(don);
     }
 

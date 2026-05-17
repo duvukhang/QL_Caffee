@@ -16,6 +16,7 @@ public interface OrderRepository extends JpaRepository<Order, String> {
             @Param("end") LocalDateTime end, 
             @Param("storeId") String storeId
     );
+    List<Order> findByRecivingDateBetween(LocalDateTime start, LocalDateTime end);
 
     // 🛠️ 2. BỔ SUNG HÀM NÀY: Ép Spring Boot đi đúng đường biến thực thể sysuser viết thường chuẩn Java
     @Query("SELECT o FROM Order o WHERE o.status = :status AND o.sysuser.store.storeId = :storeId")

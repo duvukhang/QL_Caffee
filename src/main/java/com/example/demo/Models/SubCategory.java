@@ -15,10 +15,11 @@ import lombok.*;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-
 public class SubCategory {
+
     @Id
-    @Column(name = "SubCategryId", nullable = false)
+    // 🛠️ ĐÃ FIX LỖI CHÍNH TẢ: Thêm chữ 'o' và sửa thành SubcategoryId cho khớp CSDL
+    @Column(name = "SubcategoryId", nullable = false)
     private String subCategory;
 
     @Column(name = "SubCategoryName", nullable = false)

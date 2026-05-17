@@ -8,22 +8,9 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.HashMap;
 import java.util.Map;
 
-// IMPORT PHÒNG HỜ: Khang mở comment ra nếu sau này tạo các Service tương ứng
-// import com.example.demo.Service.SQL.Staff.SqlStaffService;
-// import com.example.demo.Service.Google.SheetService;
-
 @RestController
 @RequestMapping("/test")
 public class HomeController {
-
-    // Khai báo sẵn cấu trúc Dependency Injection giống hệt bên file .NET cũ của bạn
-    // private final SqlStaffService sqlStaffService;
-    // private final SheetService sheetService;
-
-    // public HomeController(SqlStaffService sqlStaffService, SheetService sheetService) {
-    //     this.sqlStaffService = sqlStaffService;
-    //     this.sheetService = sheetService;
-    // }
 
     @GetMapping("/calling")
     public ResponseEntity<?> index() {

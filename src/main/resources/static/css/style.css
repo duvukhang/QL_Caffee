@@ -1,0 +1,23 @@
+/* Tùy chỉnh thanh cuộn cho bảng/trang */
+::-webkit-scrollbar { 
+    width: 6px; 
+    height: 6px;
+}
+::-webkit-scrollbar-thumb { 
+    background-color: #cbd5e1; 
+    border-radius: 10px; 
+}
+
+/* Hiệu ứng trượt vào mượt mà cho Toast Message */
+.toast-enter { 
+    animation: slideInRight 0.3s ease-out forwards; 
+}
+@keyframes slideInRight { 
+    from { transform: translateX(100%); opacity: 0; } 
+    to { transform: translateX(0); opacity: 1; } 
+}
+
+/* Modal Active Class (Nếu bạn dùng Modal Xem nhanh) */
+.modal-active { 
+    display: flex !important; 
+}

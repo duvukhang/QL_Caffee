@@ -6,8 +6,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface StockRepository extends JpaRepository<Stock, Integer> { // Hoặc <Stock, String> tùy thuộc vào kiểu ID của bảng Stock
+public interface StockRepository extends JpaRepository<Stock, Integer> { 
     
-    // ĐÃ THÊM: Hàm để WarehouseManagerController gọi lấy danh sách tồn kho theo mã chi nhánh
-    List<Stock> findByInventory_StoreId(String storeId);
+    List<Stock> findByInventory_Store_StoreId(String storeId);
 }
