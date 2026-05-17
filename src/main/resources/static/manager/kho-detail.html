@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chi Tiết Tồn Kho - Manager</title>
+    <style>
+        :root {
+            --primary: #2563eb; --background: #f8fafc; --surface: #ffffff;
+            --text: #1e293b; --border: #e2e8f0; --success: #22c55e;
+        }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--background); color: var(--text); margin: 0; padding: 20px; }
+        .container { max-width: 1100px; margin: 0 auto; background: var(--surface); padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border); padding-bottom: 15px; margin-bottom: 20px; }
+        h2 { margin: 0; color: var(--primary); }
+        .btn { background: var(--primary); color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; text-decoration: none; font-weight: 600; font-size: 14px; }
+        .btn-group { display: flex; gap: 10px; }
+        .info-card { background: #eff6ff; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-weight: bold; color: #1e40af; display: inline-block; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 14px; text-align: left; border-bottom: 1px solid var(--border); }
+        th { background: #f1f5f9; color: #64748b; font-weight: 600; }
+        tr:hover { background: #f8fafc; }
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; background: #dcfce7; color: #166534; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>📦 HỆ THỐNG QUẢN LÝ TỒN KHO CHI NHÁNH</h2>
+            <div class="btn-group">
+                <a href="kho-stock.html" class="btn" style="background: #059669;">+ Nhập / Xuất Kho</a>
+                <a href="kho-record.html" class="btn" style="background: #4b5563;">📜 Lịch Sử Phiếu</a>
+            </div>
+        </div>
+
+        <div class="info-card" id="inventory-info">Mã Kho Hệ Thống: Đang tải...</div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Mã Hàng Hóa</th>
+                    <th>Tên Hàng Hóa</th>
+                    <th>Đơn Vị Tính</th>
+                    <th>Số Lượng Tồn</th>
+                    <th>Trạng Thái</th>
+                </tr>
+            </thead>
+            <tbody id="stock-table-body">
+                <tr><td colspan="5" style="text-align:center; color:#94a3b8;">Đang tải dữ liệu từ Server...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // Khang nhớ đính kèm Token JWT vào Header nếu hệ thống yêu cầu bảo mật nhé
+            fetch('/manager/kho/Detail', {
+                method: 'GET',
+                headers: { 'Authorization': localStorage.getItem('token') || 'Bearer test-token' }
+            })
+            .then(res => {
+                if(res.status === 403 || res.status === 401) alert("Bạn không có quyền truy cập!");
+                return res.json();
+            })
+            .then(data => {
+                document.getElementById("inventory-info").innerText = `Mã Kho Hệ Thống: KH-${data.InventoryId || 'Chưa rõ'}`;
+                const tbody = document.getElementById("stock-table-body");
+                tbody.innerHTML = "";
+                
+                if(!data.Stock || data.Stock.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">Kho trống hoặc chưa có dữ liệu tồn.</td></tr>`;
+                    return;
+                }
+
+                data.Stock.forEach(item => {
+                    const tr = document.createElement("tr");
+                    tr.innerHTML = `
+                        <td><b>${item.GoodId || 'N/A'}</b></td>
+                        <td>${item.GoodName || 'Chưa cập nhật'}</td>
+                        <td><span style="color:#64748b;">${item.UnitName || 'Ký'}</span></td>
+                        <td style="font-weight:bold; color:#1e3a8a;">${item.InStock}</td>
+                        <td><span class="badge">${item.Status || 'Hoạt động'}</span></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            })
+            .catch(err => {
+                document.getElementById("stock-table-body").innerHTML = `<tr><td colspan="5" style="text-align:center; color:red;">Lỗi kết nối API Server!</td></tr>`;
+            });
+        });
+    </script>
+</body>
+</html>

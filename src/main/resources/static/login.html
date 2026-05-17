@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Đăng Nhập Hệ Thống</title>
+    <style>
+        body { font-family: sans-serif; background: #f1f5f9; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .login-form { background: white; padding: 40px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
+        h2 { margin-top: 0; text-align: center; color: #1e3a8a; }
+        .input-group { display: flex; flex-direction: column; margin-bottom: 15px; }
+        label { font-size: 13px; font-weight: bold; margin-bottom: 5px; color: #475569; }
+        input { padding: 10px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 14px; }
+        .btn-login { width: 100%; padding: 12px; background: #1e3a8a; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 15px; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <div class="login-form">
+        <h2>🔒 SIGN IN</h2>
+        <div class="input-group">
+            <label>Mã Nhân Viên (ID)</label>
+            <input type="text" id="txtUser" value="1001" placeholder="Nhập mã số định danh">
+        </div>
+        <div class="input-group">
+            <label>Mật Khẩu</label>
+            <input type="password" id="txtPass" value="123456" placeholder="******">
+        </div>
+        <button class="btn-login" onclick="executeLogin()">XÁC THỰC TÀI KHOẢN</button>
+        <a href="index.html" style="display:block; text-align:center; margin-top:15px; color:#64748b; font-size:13px; text-decoration:none;">← Quay lại trang chủ</a>
+    </div>
+
+    <script>
+        function executeLogin() {
+            const user = document.getElementById("txtUser").value;
+            const pass = document.getElementById("txtPass").value;
+
+            // Đường dẫn API xác thực của dự án Spring Boot của Khang
+            fetch('/api/auth/login', { 
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: user, password: pass })
+            })
+            .then(res => {
+                if(!res.ok) throw new Error("Tài khoản hoặc mật khẩu không chính xác!");
+                return res.json();
+            })
+            .then(data => {
+                // Đảm bảo bọc chuỗi Bearer chuẩn chỉnh theo cơ chế JWTFilter đã cấu hình
+                localStorage.setItem("token", "Bearer " + data.token);
+                alert("🎉 Đăng nhập thành công!");
+                window.location.href = "index.html";
+            })
+            .catch(err => {
+                // Giả lập lưu token test để Khang chạy giao diện khi chưa xong API Login
+                localStorage.setItem("token", "Bearer mock-jwt-token-admin-role");
+                alert("Giả lập cấp mã Token Test thành công để nghiệm thu UI!");
+                window.location.href = "index.html";
+            });
+        }
+    </script>
+</body>
+</html>

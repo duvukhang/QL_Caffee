@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Quản Lý Sản Phẩm - Toàn Diện</title>
+    <style>
+        :root { --primary: #b91c1c; --sidebar: #0f172a; --bg: #f1f5f9; --surface: #ffffff; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; display: flex; }
+        .sidebar { width: 260px; background: var(--sidebar); height: 100vh; position: fixed; color: white; padding: 20px 0; box-sizing: border-box; }
+        .sidebar .brand { padding: 0 25px 20px 25px; border-bottom: 1px solid #1e293b; font-size: 18px; font-weight: bold; color: #38bdf8; }
+        .sidebar-menu { list-style: none; padding: 0; margin: 0; }
+        .sidebar-menu li a { display: block; padding: 12px 25px; color: #94a3b8; text-decoration: none; font-size: 14px; }
+        .sidebar-menu li.active a { background: #1e293b; color: white; border-left: 4px solid #38bdf8; }
+        .main-content { margin-left: 260px; flex: 1; padding: 30px; box-sizing: border-box; }
+        .wrapper { display: grid; grid-template-columns: 1fr 1.3fr; gap: 20px; }
+        .panel { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .field { display: flex; flex-direction: column; margin-bottom: 12px; }
+        .field label { font-size: 12px; font-weight: bold; margin-bottom: 4px; color: #475569; }
+        input, textarea { padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; }
+        .btn-action { background: var(--primary); color: white; padding: 10px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; }
+        .prod-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f1f5f9; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="brand">🏬 HỆ THỐNG HUIT PORTAL</div>
+        <ul class="sidebar-menu">
+            <li><a href="../index.html">📊 Thống Kê Tổng Quan</a></li>
+            <li><a href="../profile.html">👤 Hồ Sơ Cá Nhân</a></li>
+            <li><a href="staff.html">👥 Quản Lý Nhân Viên</a></li>
+            <li class="active"><a href="product.html">📦 Quản Lý Sản Phẩm</a></li>
+            <li><a href="../manager/kho-detail.html">📦 Xem Tồn Kho Chi Nhánh</a></li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <h2 style="color:var(--primary); margin-top:0; margin-bottom:25px;">⚙️ QUẢN TRỊ VIÊN - ĐIỀU HÀNH DANH MỤC HÀNG HÓA</h2>
+        
+        <div class="wrapper">
+            <div class="panel">
+                <h3 id="panel-form-title" style="margin-top: 0; color: var(--primary);">➕ THÊM MỚI SẢN PHẨM</h3>
+                <form id="formProduct">
+                    <input type="hidden" id="txtProdIdHidden">
+                    <div class="field"><label>Tên Sản Phẩm</label><input type="text" id="txtProdName" required></div>
+                    <div class="field"><label>Đơn Giá (đ)</label><input type="number" id="txtPrice" value="45000"></div>
+                    <div class="field"><label>Mô Tả</label><textarea id="txtDesc" rows="3"></textarea></div>
+                    <div class="field"><label>Mã Danh Mục Con (SubCategory ID)</label><input type="text" id="txtDmId" value="DM01"></div>
+                    <div class="field" id="image-field-wrapper"><label>Hình Ảnh Minh Họa</label><input type="file" id="fileImg" accept="image/*"></div>
+                    <button type="button" class="btn-action" onclick="executeSubmitProduct()">LƯU VÀO CƠ SỞ DỮ LIỆU</button>
+                    <button type="button" class="btn-action" style="background:#64748b; display:none;" id="btnCancelProductEdit" onclick="resetProductForm()">Hủy Sửa</button>
+                </form>
+            </div>
+
+            <div class="panel">
+                <h3 style="margin-top: 0; color: #475569;">🗑️ DANH SÁCH & ĐIỀU CHỈNH HÀNG HÓA</h3>
+                <div id="admin-prod-list" style="max-height: 500px; overflow-y: auto;">
+                    </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function loadProducts() {
+            fetch('/public/Product/1/100')
+            .then(res => res.json())
+            .then(data => {
+                const list = document.getElementById("admin-prod-list");
+                list.innerHTML = "";
+                data.items.forEach(item => {
+                    const p = item.Value;
+                    list.innerHTML += `
+                        <div class="prod-row">
+                            <div>
+                                <span style="font-weight:bold;">${p.productName}</span><br>
+                                <span style="font-size:12px; color:#64748b;">Mã: ${p.productId} | Giá: ${p.price.toLocaleString()}đ</span>
+                            </div>
+                            <div>
+                                <button style="background:#f59e0b; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; font-size:12px;" onclick="triggerEditMode('${p.productId}', '${p.productName}', ${p.price}, '${p.description || ''}', '${p.subcategoryId || ''}')">Sửa</button>
+                                <button style="background:#fee2e2; color:#ef4444; border:1px solid #fee2e2; padding:4px 8px; border-radius:4px; cursor:pointer; font-size:12px;" onclick="softDelete('${p.productId}')">Xóa mềm</button>
+                            </div>
+                        </div>
+                    `;
+                });
+            });
+        }
+
+        function triggerEditMode(id, name, price, desc, dmId) {
+            document.getElementById("panel-form-title").innerText = "⚙️ CẬP NHẬT SẢN PHẨM";
+            document.getElementById("txtIdHidden").value = id;
+            document.getElementById("txtProdName").value = name;
+            document.getElementById("txtPrice").value = price;
+            document.getElementById("txtDesc").value = desc;
+            document.getElementById("txtDmId").value = dmId;
+            document.getElementById("image-field-wrapper").style.display = "none"; // Sửa dữ liệu không cần ép up lại ảnh cũ
+            document.getElementById("btnCancelProductEdit").style.display = "block";
+        }
+
+        function resetProductForm() {
+            document.getElementById("panel-form-title").innerText = "➕ THÊM MỚI SẢN PHẨM";
+            document.getElementById("formProduct").reset();
+            document.getElementById("txtIdHidden").value = "";
+            document.getElementById("image-field-wrapper").style.display = "block";
+            document.getElementById("btnCancelProductEdit").style.display = "none";
+        }
+
+        function executeSubmitProduct() {
+            const id = document.getElementById("txtIdHidden").value;
+            if (id) {
+                // Logic PUT để sửa dữ liệu JSON phẳng
+                fetch(`/Admin/Product/Update/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': localStorage.getItem("token") },
+                    body: JSON.stringify({ productName: document.getElementById("txtProdName").value, price: document.getElementById("txtPrice").value, description: document.getElementById("txtDesc").value })
+                }).then(() => { alert("Cập nhật thành công!"); resetProductForm(); loadProducts(); });
+            } else {
+                // Logic POST thêm mới kèm Multipartfile ảnh như file cũ của Khang
+                const formData = new FormData();
+                formData.append("productname", document.getElementById("txtProdName").value);
+                formData.append("donGia", document.getElementById("txtPrice").value);
+                formData.append("mota", document.getElementById("txtDesc").value);
+                formData.append("dmid", document.getElementById("txtDmId").value);
+                formData.append("file", document.getElementById("fileImg").files[0]);
+
+                fetch('/Admin/Product', { method: 'POST', headers: { 'Authorization': localStorage.getItem("token") }, body: formData })
+                .then(() => { alert("Thêm sản phẩm thành công!"); resetProductForm(); loadProducts(); });
+            }
+        }
+
+        function softDelete(id) {
+            if(confirm("Ẩn sản phẩm này khỏi thực đơn?")) {
+                fetch(`/Admin/Product/SoftDelete/${id}`, { method: 'PUT', headers: { 'Authorization': localStorage.getItem("token") } })
+                .then(() => { alert("Đã xóa mềm!"); loadProducts(); });
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", loadProducts);
+    </script>
+</body>
+</html>
