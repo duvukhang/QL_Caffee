@@ -17,7 +17,7 @@
         .panel { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
         .field { display: flex; flex-direction: column; margin-bottom: 12px; }
         .field label { font-size: 12px; font-weight: bold; margin-bottom: 4px; color: #475569; }
-        input, textarea { padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; }
+        input, textarea, select { padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; }
         .btn-action { background: var(--primary); color: white; padding: 10px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; }
         .prod-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f1f5f9; }
     </style>
@@ -43,7 +43,14 @@
                     <div class="field"><label>Tên Sản Phẩm</label><input type="text" id="txtProdName" required></div>
                     <div class="field"><label>Đơn Giá (đ)</label><input type="number" id="txtPrice" value="45000"></div>
                     <div class="field"><label>Mô Tả</label><textarea id="txtDesc" rows="3"></textarea></div>
-                    <div class="field"><label>Mã Danh Mục (Ví dụ: DM00000001)</label><input type="text" id="txtDmId" value="DM00000001"></div>
+                    
+                    <div class="field">
+                        <label>Loại Sản Phẩm (Danh Mục)</label>
+                        <select id="txtDmId" required>
+                            <option value="">-- Đang tải danh mục... --</option>
+                        </select>
+                    </div>
+
                     <div class="field" id="image-field-wrapper"><label>Hình Ảnh Minh Họa</label><input type="file" id="fileImg" accept="image/*"></div>
                     <button type="button" class="btn-action" onclick="executeSubmitProduct()">LƯU VÀO CƠ SỞ DỮ LIỆU</button>
                     <button type="button" class="btn-action" style="background:#64748b; display:none;" id="btnCancelProductEdit" onclick="resetProductForm()">Hủy Sửa</button>
@@ -59,6 +66,25 @@
 
     <script>
         const token = localStorage.getItem("token");
+
+        function loadCategories() {
+            fetch('/public/DanhMuc')
+            .then(res => res.json())
+            .then(data => {
+                const select = document.getElementById("txtDmId");
+                select.innerHTML = '<option value="">-- Chọn Loại Sản Phẩm --</option>';
+                data.forEach(dmCha => {
+                    if(dmCha.danhMucCon && dmCha.danhMucCon.length > 0) {
+                        const optgroup = document.createElement('optgroup');
+                        optgroup.label = dmCha.ten;
+                        dmCha.danhMucCon.forEach(dmCon => {
+                            optgroup.innerHTML += `<option value="${dmCon.MaDm}">${dmCon.tenDM}</option>`;
+                        });
+                        select.appendChild(optgroup);
+                    }
+                });
+            }).catch(err => console.log("Lỗi tải danh mục:", err));
+        }
 
         function loadProducts() {
             fetch('/public/Product/1/100')
@@ -79,7 +105,7 @@
                                         <span style="font-size:12px; color:#64748b;">Mã: ${p.productId} | Giá: ${Number(p.price).toLocaleString('vi-VN')}đ</span>
                                     </div>
                                     <div>
-                                        <button style="background:#f59e0b; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;" onclick="triggerEditMode('${p.productId}', '${safeName}', ${p.price}, '${safeDesc}')">Sửa</button>
+                                        <button style="background:#f59e0b; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;" onclick="triggerEditMode('${p.productId}', '${safeName}', ${p.price}, '${safeDesc}', '${p.subcategoryId}')">Sửa</button>
                                         <button style="background:#ef4444; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;" onclick="softDelete('${p.productId}')">Xóa</button>
                                     </div>
                                 </div>
@@ -90,12 +116,18 @@
             });
         }
 
-        function triggerEditMode(id, name, price, desc) {
+        function triggerEditMode(id, name, price, desc, subCateId) {
             document.getElementById("panel-form-title").innerText = "⚙️ CẬP NHẬT SẢN PHẨM";
             document.getElementById("txtProdIdHidden").value = id; 
             document.getElementById("txtProdName").value = name;
             document.getElementById("txtPrice").value = price;
             document.getElementById("txtDesc").value = desc;
+            
+            // Tự động select danh mục
+            if(subCateId) {
+                document.getElementById("txtDmId").value = subCateId;
+            }
+
             document.getElementById("image-field-wrapper").style.display = "none";
             document.getElementById("btnCancelProductEdit").style.display = "block";
         }
@@ -120,6 +152,7 @@
                         productName: document.getElementById("txtProdName").value,
                         price: document.getElementById("txtPrice").value,
                         description: document.getElementById("txtDesc").value
+                        // Lưu ý: Update API ở backend hiện đang chưa nhận subCategoryId. Sẽ cần chỉnh backend nếu muốn update cả mã loại
                     })
                 }).then(() => { alert("Cập nhật thành công!"); resetProductForm(); loadProducts(); });
             } else {
@@ -156,7 +189,10 @@
             }
         }
 
-        document.addEventListener("DOMContentLoaded", loadProducts);
+        document.addEventListener("DOMContentLoaded", () => {
+            loadCategories();
+            loadProducts();
+        });
     </script>
 </body>
 </html>
