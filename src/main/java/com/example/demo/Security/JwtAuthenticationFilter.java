@@ -11,10 +11,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
-
+import java.io.IOException;\r\nimport java.util.Collections;\r\nimport java.util.List;\r\nimport java.util.Locale;\r\n
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 

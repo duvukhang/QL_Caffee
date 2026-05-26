@@ -41,6 +41,7 @@ public class DataInitializer implements CommandLineRunner {
             store.setStoreId("ST01");
             store.setStoreName("Cửa Hàng Trung Tâm");
             store.setStoreAddr("TP.HCM");
+            store.setStoreStatus("Hoạt Động");
             return storeRepository.save(store);
         });
 

@@ -26,7 +26,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h2>📦 HỆ THỐNG QUẢN LÝ TỒN KHO CHI NHÁNH</h2>
+            <h2> HỆ THỐNG QUẢN LÝ TỒN KHO CHI NHÁNH</h2>
             <div class="btn-group">
                 <a href="kho-stock.html" class="btn" style="background: #059669;">+ Nhập / Xuất Kho</a>
                 <a href="kho-record.html" class="btn" style="background: #4b5563;">📜 Lịch Sử Phiếu</a>
@@ -52,21 +52,48 @@
     </div>
 
     <script>
+        function renderError(message, isAuthError = false) {
+            const info = document.getElementById("inventory-info");
+            const tbody = document.getElementById("stock-table-body");
+
+            info.innerText = isAuthError ? "Mã Kho Hệ Thống: Chưa xác thực" : "Mã Kho Hệ Thống: Không tải được dữ liệu";
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="5" style="text-align:center; color:#475569; line-height:1.7;">
+                        ${message}
+                        ${isAuthError ? '<br><a href="/login.html" style="color:#2563eb; font-weight:700; text-decoration:none;">Đăng nhập ngay</a>' : ''}
+                    </td>
+                </tr>`;
+        }
+
         document.addEventListener("DOMContentLoaded", function() {
-            // Khang nhớ đính kèm Token JWT vào Header nếu hệ thống yêu cầu bảo mật nhé
+            const token = localStorage.getItem("token");
+
+            if (!token) {
+                renderError("Bạn chưa đăng nhập hoặc phiên làm việc đã hết hạn. Vui lòng đăng nhập để xem chi tiết tồn kho.", true);
+                return;
+            }
+
             fetch('/manager/kho/Detail', {
                 method: 'GET',
-                headers: { 'Authorization': localStorage.getItem('token') || 'Bearer test-token' }
+                headers: { 'Authorization': `Bearer ${token}` }
             })
-            .then(res => {
-                if(res.status === 403 || res.status === 401) alert("Bạn không có quyền truy cập!");
+            .then(async res => {
+                if (res.status === 401 || res.status === 403) {
+                    throw new Error("Bạn chưa đăng nhập hoặc không có quyền truy cập vào khu vực quản lý.");
+                }
+
+                if (!res.ok) {
+                    throw new Error("Không thể tải dữ liệu từ server.");
+                }
+
                 return res.json();
             })
             .then(data => {
                 document.getElementById("inventory-info").innerText = `Mã Kho Hệ Thống: KH-${data.InventoryId || 'Chưa rõ'}`;
                 const tbody = document.getElementById("stock-table-body");
                 tbody.innerHTML = "";
-                
+
                 if(!data.Stock || data.Stock.length === 0) {
                     tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">Kho trống hoặc chưa có dữ liệu tồn.</td></tr>`;
                     return;
@@ -85,7 +112,7 @@
                 });
             })
             .catch(err => {
-                document.getElementById("stock-table-body").innerHTML = `<tr><td colspan="5" style="text-align:center; color:red;">Lỗi kết nối API Server!</td></tr>`;
+                renderError(err.message || 'Lỗi kết nối API Server!');
             });
         });
     </script>
