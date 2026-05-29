@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
+<title>Trang chủ</title>
+<main>
+    <section class="hero">
+        <div class="hero-content">
+            <span class="hero-kicker">☕ Fresh coffee every day</span>
+            <h1>Đặt cà phê ngon trong vài cú nhấp.</h1>
+            <p>Giao diện mới tập trung vào trải nghiệm mua hàng: đẹp hơn, thoáng hơn, dễ tìm sản phẩm, dễ xem nhanh và dễ thanh toán.</p>
+            <div class="hero-actions">
+                <a class="btn" href="#san-pham">Mua ngay</a>
+                <a class="btn secondary" th:href="@{/home/menu}">Xem danh mục</a>
+            </div>
+            <div class="hero-stats">
+                <div class="stat-box">
+                    <strong th:text="${products.size()}">0</strong>
+                    <span>Sản phẩm</span>
+                </div>
+                <div class="stat-box">
+                    <strong th:text="${categories.size()}">0</strong>
+                    <span>Danh mục</span>
+                </div>
+                <div class="stat-box">
+                    <strong>COD</strong>
+                    <span>Thanh toán dễ</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="highlight-panel">
+            <div class="highlight-card">
+                <h3>Món nổi bật</h3>
+                <div class="highlight-list">
+                    <div class="highlight-item" th:each="p : ${sliderProducts}">
+                        <img th:src="${p.img ?: '/img/no-image.png'}" alt="product">
+                        <div>
+                            <h4 th:text="${p.productName}">Tên sản phẩm</h4>
+                            <p th:text="${#numbers.formatDecimal(p.price,0,'COMMA',0,'POINT')} + ' đ'">0 đ</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="highlight-card">
+                <span class="badge">Giao diện mới</span>
+                <h3 style="margin-top:10px">Sạch hơn, sang hơn, giống website bán hàng thật hơn.</h3>
+                <p class="muted">Bộ lọc rõ ràng, card sản phẩm đẹp, thao tác mua hàng nổi bật.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="filters-panel section">
+        <div class="section-head">
+            <div>
+                <h2 th:text="${currentFilter}">Tất cả sản phẩm</h2>
+                <p>Tìm kiếm, lọc theo giá, chọn danh mục và sắp xếp sản phẩm.</p>
+            </div>
+            <span class="badge-outline" th:text="${products.size()} + ' sản phẩm'">0 sản phẩm</span>
+        </div>
+
+        <form th:action="@{/}" method="get">
+            <div class="filters">
+                <div class="filter-block">
+                    <label for="keyword">Tìm sản phẩm</label>
+                    <input id="keyword" name="keyword" placeholder="Cà phê sữa, bánh, salad..." th:value="${keyword}">
+                </div>
+                <div class="filter-block">
+                    <label for="minPrice">Giá từ</label>
+                    <input id="minPrice" name="minPrice" type="number" min="0" th:value="${minPrice}" placeholder="0">
+                </div>
+                <div class="filter-block">
+                    <label for="maxPrice">Giá đến</label>
+                    <input id="maxPrice" name="maxPrice" type="number" min="0" th:value="${maxPrice}" placeholder="200000">
+                </div>
+                <div class="filter-block">
+                    <label for="sortOrder">Sắp xếp</label>
+                    <select id="sortOrder" name="sortOrder">
+                        <option value="" th:selected="${sortOrder == null or sortOrder == ''}">Mới nhất</option>
+                        <option value="price_asc" th:selected="${sortOrder == 'price_asc'}">Giá tăng dần</option>
+                        <option value="price_desc" th:selected="${sortOrder == 'price_desc'}">Giá giảm dần</option>
+                        <option value="popular" th:selected="${sortOrder == 'popular'}">Phổ biến</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="category-filter">
+                <strong>Loại sản phẩm</strong>
+                <div class="chip-group">
+                    <label class="chip-check" th:each="c : ${categories}">
+                        <input type="checkbox" name="selectedTypes" th:value="${c.subCategoryName}" th:checked="${selectedTypes.contains(c.subCategoryName)}">
+                        <span th:text="${c.subCategoryName}">Loại</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="filter-actions">
+                <button class="btn" type="submit">Áp dụng bộ lọc</button>
+                <a class="btn secondary" th:href="@{/}">Làm mới</a>
+            </div>
+        </form>
+    </section>
+
+    <section class="section" id="san-pham">
+        <div class="results-bar">
+            <span class="subtle">Danh sách sản phẩm</span>
+            <span class="badge-outline">Quick view + thêm giỏ nhanh</span>
+        </div>
+
+        <div class="grid" th:if="${!products.isEmpty()}">
+            <article class="card product-card" th:each="p : ${products}">
+                <div class="product-media">
+                    <span class="badge product-tag" th:text="${p.subcategory != null ? p.subcategory.subCategoryName : 'Sản phẩm'}">Sản phẩm</span>
+                    <img th:src="${p.img ?: '/img/no-image.png'}" alt="product">
+                </div>
+                <div class="product-body">
+                    <h3 th:text="${p.productName}">Tên SP</h3>
+                    <p class="product-desc" th:text="${p.decription ?: 'Hương vị thơm ngon, phù hợp để thưởng thức mỗi ngày.'}"></p>
+                    <div class="product-meta">
+                        <span class="price" th:text="${#numbers.formatDecimal(p.price,0,'COMMA',0,'POINT')} + ' đ'">0 đ</span>
+                    </div>
+                    <div class="actions">
+                        <a class="btn secondary" th:href="@{/home/detail(id=${p.productId})}">Chi tiết</a>
+                        <button class="btn ghost" type="button"
+                                th:data-name="${p.productName}"
+                                th:data-img="${p.img ?: '/img/no-image.png'}"
+                                th:data-price="${#numbers.formatDecimal(p.price,0,'COMMA',0,'POINT')} + ' đ'"
+                                th:data-desc="${p.decription ?: 'Chưa có mô tả'}"
+                                th:data-category="${p.subcategory != null ? p.subcategory.subCategoryName : 'Sản phẩm'}"
+                                onclick="quickView(this)">Xem nhanh</button>
+                        <a class="btn" th:href="@{/cart/add(id=${p.productId})}">Thêm giỏ</a>
+                    </div>
+                </div>
+            </article>
+        </div>
+
+        <div class="empty-state" th:if="${products.isEmpty()}">
+            <div class="empty-icon">🔎</div>
+            <h3>Không tìm thấy sản phẩm</h3>
+            <p>Hãy thử đổi từ khóa, bỏ bớt bộ lọc hoặc quay lại danh sách sản phẩm.</p>
+            <a class="btn secondary" th:href="@{/}">Xem tất cả sản phẩm</a>
+        </div>
+    </section>
+
+    <div id="quickViewModal" class="modal" onclick="closeQuickView(event)">
+        <div class="modal-content">
+            <button class="modal-close" type="button" onclick="hideQuickView()">×</button>
+            <img id="quickViewImg" src="/img/no-image.png" alt="product">
+            <div class="modal-meta">
+                <span class="badge" id="quickViewCategory">Sản phẩm</span>
+                <h2 id="quickViewName"></h2>
+                <p class="price" id="quickViewPrice"></p>
+                <p class="muted" id="quickViewDesc"></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    function quickView(btn){
+        document.getElementById('quickViewImg').src = btn.dataset.img;
+        document.getElementById('quickViewName').innerText = btn.dataset.name;
+        document.getElementById('quickViewPrice').innerText = btn.dataset.price;
+        document.getElementById('quickViewDesc').innerText = btn.dataset.desc;
+        document.getElementById('quickViewCategory').innerText = btn.dataset.category;
+        document.getElementById('quickViewModal').classList.add('show');
+    }
+    function hideQuickView(){ document.getElementById('quickViewModal').classList.remove('show'); }
+    function closeQuickView(e){ if(e.target.id === 'quickViewModal') hideQuickView(); }
+    </script>
+</main>
+</html>

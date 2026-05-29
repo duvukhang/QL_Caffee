@@ -1,0 +1,12 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
+<title>Không tìm thấy</title>
+<main>
+    <div class="empty-state section">
+        <div class="empty-icon">404</div>
+        <h3>Không tìm thấy dữ liệu</h3>
+        <p>Trang hoặc nội dung bạn đang tìm kiếm có thể đã bị thay đổi hoặc không còn tồn tại.</p>
+        <a class="btn" th:href="@{/}">Quay về trang chủ</a>
+    </div>
+</main>
+</html>

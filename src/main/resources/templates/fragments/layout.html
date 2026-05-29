@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" th:fragment="layout(title, content)">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:replace="${title}">Ban Caffee</title>
+    <link rel="stylesheet" th:href="@{/css/site.css}">
+</head>
+<body>
+<header class="topbar">
+    <div class="topbar-inner">
+        <a class="brand" th:href="@{/}">
+            <span class="brand-mark">☕</span>
+            <span class="brand-text">
+                <strong>Ban Caffee</strong>
+                <span>Coffee • Bakery • Fast order</span>
+            </span>
+        </a>
+        <nav>
+            <a th:href="@{/}">Trang chủ</a>
+            <a th:href="@{/home/menu}">Danh mục</a>
+            <a th:href="@{/home/contact}">Liên hệ</a>
+            <a th:href="@{/cart/gio-hang}">Giỏ hàng</a>
+            <a th:href="@{/order/history}">Đơn hàng</a>
+            <span th:if="${session.customerId != null or session.UserId != null}" class="nav-user">
+                Xin chào, <b th:text="${session.userName}">user</b>
+            </span>
+            <a th:if="${session.customerId != null or session.UserId != null}" th:href="@{/user/profile}">Tài khoản</a>
+            <a th:if="${session.customerId != null or session.UserId != null}" th:href="@{/user/logout}">Đăng xuất</a>
+            <a th:if="${session.customerId == null and session.UserId == null}" th:href="@{/user/login}">Đăng nhập</a>
+        </nav>
+    </div>
+</header>
+
+<div class="toast success" th:if="${successMessage}" th:text="${successMessage}"></div>
+<div class="toast error" th:if="${errorMessage}" th:text="${errorMessage}"></div>
+
+<main class="container" th:replace="${content}"></main>
+
+<footer class="footer">
+    <div class="footer-inner">
+        <div class="footer-grid">
+            <div>
+                <h4>Ban Caffee</h4>
+                <p>Website bán hàng cà phê với giao diện sạch, hiện đại, dễ demo và dễ sử dụng cho khách hàng.</p>
+            </div>
+            <div>
+                <h4>Mua hàng</h4>
+                <ul>
+                    <li><a th:href="@{/}">Sản phẩm</a></li>
+                    <li><a th:href="@{/home/menu}">Danh mục</a></li>
+                    <li><a th:href="@{/cart/gio-hang}">Giỏ hàng</a></li>
+                    <li><a th:href="@{/order/history}">Đơn hàng</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4>Thông tin</h4>
+                <ul>
+                    <li><a th:href="@{/home/contact}">Liên hệ</a></li>
+                    <li><a th:href="@{/home/about}">Giới thiệu</a></li>
+                    <li><a th:href="@{/home/privacy}">Chính sách</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">© Ban Caffee - Spring Boot MVC</div>
+    </div>
+</footer>
+
+<script>
+setTimeout(function(){
+  document.querySelectorAll('.toast').forEach(function(t){ t.classList.add('hide'); });
+}, 2600);
+</script>
+</body>
+</html>

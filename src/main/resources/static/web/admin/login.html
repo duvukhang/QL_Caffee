@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dang nhap admin</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #eef2ff; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .login-form { background: white; padding: 36px; border-radius: 8px; box-shadow: 0 10px 30px rgba(15, 23, 42, 0.14); width: calc(100% - 32px); max-width: 420px; }
+        h2 { margin: 0 0 6px; text-align: center; color: #1e3a8a; }
+        .subtitle { text-align: center; color: #64748b; font-size: 13px; margin: 0 0 24px; }
+        .input-group { display: flex; flex-direction: column; margin-bottom: 15px; }
+        label { font-size: 13px; font-weight: 700; margin-bottom: 6px; color: #475569; }
+        input { padding: 11px 12px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 14px; outline: none; transition: border-color 0.2s, box-shadow 0.2s; }
+        input:focus { border-color: #1e3a8a; box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.12); }
+        .btn-login { width: 100%; padding: 12px; background: #1e3a8a; color: white; border: none; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 15px; margin-top: 10px; transition: background 0.2s; }
+        .btn-login:hover { background: #172554; }
+        .btn-login:disabled { background: #94a3b8; cursor: not-allowed; }
+        #error-msg { display: none; background-color: #fee2e2; color: #b91c1c; border-left: 4px solid #ef4444; padding: 10px; font-size: 13px; margin-bottom: 15px; border-radius: 4px; font-weight: 700; }
+    </style>
+</head>
+<body>
+    <div class="login-form">
+        <h2>Dang nhap admin</h2>
+        <p class="subtitle">Danh cho Admin, Manager va Cashier</p>
+
+        <div id="error-msg"></div>
+
+        <div class="input-group">
+            <label>Email / Ten dang nhap</label>
+            <input type="text" id="txtUser" value="admin@gmail.com" placeholder="Nhap email hoac username">
+        </div>
+        <div class="input-group">
+            <label>Mat khau</label>
+            <input type="password" id="txtPass" value="123" placeholder="******">
+        </div>
+        <button class="btn-login" id="btn-login" onclick="executeLogin()">Dang nhap quan tri</button>
+    </div>
+
+    <script>
+        async function executeLogin() {
+            const user = document.getElementById("txtUser").value.trim();
+            const pass = document.getElementById("txtPass").value.trim();
+            const btnLogin = document.getElementById("btn-login");
+            if (!user || !pass) {
+                showError("Vui long nhap tai khoan va mat khau.");
+                return;
+            }
+
+            btnLogin.innerText = "Dang xac thuc...";
+            btnLogin.disabled = true;
+
+            try {
+                const response = await fetch("/api/auth/login", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ username: user, password: pass })
+                });
+                const data = await response.json().catch(() => ({}));
+                if (!response.ok) {
+                    throw new Error(data.message || "Tai khoan hoac mat khau khong chinh xac.");
+                }
+                if (data.roles === "Customer") {
+                    throw new Error("Tai khoan nay la khach hang. Vui long dang nhap o trang khach hang.");
+                }
+
+                localStorage.setItem("token", data.token);
+                localStorage.setItem("role", data.roles || "");
+                localStorage.setItem("accountType", data.accountType || "");
+                localStorage.setItem("displayName", data.staffName || data.userName || "");
+                localStorage.removeItem("customerId");
+                window.location.href = data.redirectUrl || "/web/index.html";
+            } catch (err) {
+                showError(err.message || "Khong the ket noi den may chu.");
+            } finally {
+                btnLogin.innerText = "Dang nhap quan tri";
+                btnLogin.disabled = false;
+            }
+        }
+
+        function showError(message) {
+            const errorMsg = document.getElementById("error-msg");
+            errorMsg.innerText = message;
+            errorMsg.style.display = "block";
+        }
+
+        document.addEventListener("keypress", (event) => {
+            if (event.key === "Enter") executeLogin();
+        });
+    </script>
+</body>
+</html>
