@@ -14,48 +14,53 @@
     return button;
   }
 
-  function setup(wrapper) {
+  function updateState(wrapper) {
     var select = wrapper.querySelector("select");
-    if (!select || select.dataset.clearableReady === "true") {
+    if (!select) {
       return;
     }
+    wrapper.classList.toggle("has-value", Boolean(select.value));
+  }
 
-    var button = ensureButton(wrapper);
-    select.dataset.clearableReady = "true";
-
-    function sync() {
-      var hasValue = select.value !== "";
-      wrapper.classList.toggle("has-value", hasValue);
-      button.hidden = !hasValue;
+  function requestFormSubmit(form) {
+    if (typeof form.requestSubmit === "function") {
+      form.requestSubmit();
+    } else {
+      form.submit();
     }
+  }
 
-    button.addEventListener("click", function () {
-      select.value = "";
-      select.dispatchEvent(new Event("change", { bubbles: true }));
-      sync();
+  function submitParentForm(element) {
+    var form = element.closest("form[data-auto-submit='true']");
+    if (form) {
+      requestFormSubmit(form);
+    }
+  }
 
-      var form = select.closest("form");
-      var shouldSubmit = wrapper.dataset.submitOnClear === "true" || (form && form.dataset.autoSubmit === "true");
-      if (shouldSubmit && form) {
-        if (typeof form.requestSubmit === "function") {
-          form.requestSubmit();
-        } else {
-          form.submit();
-        }
+  document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll(".clearable-select").forEach(function (wrapper) {
+      var select = wrapper.querySelector("select");
+      if (!select) {
+        return;
       }
+      var clearButton = ensureButton(wrapper);
+
+      updateState(wrapper);
+      select.addEventListener("change", function () {
+        updateState(wrapper);
+        submitParentForm(select);
+      });
+
+      clearButton.addEventListener("click", function () {
+        select.value = "";
+        select.dispatchEvent(new Event("change", { bubbles: true }));
+        if (wrapper.dataset.submitOnClear === "true" && !select.closest("form[data-auto-submit='true']")) {
+          var form = select.closest("form");
+          if (form) {
+            requestFormSubmit(form);
+          }
+        }
+      });
     });
-
-    select.addEventListener("change", sync);
-    sync();
-  }
-
-  function init() {
-    document.querySelectorAll(".clearable-select").forEach(setup);
-  }
-
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", init);
-  } else {
-    init();
-  }
+  });
 })();

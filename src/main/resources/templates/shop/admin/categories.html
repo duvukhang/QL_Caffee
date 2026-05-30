@@ -32,23 +32,44 @@
             <input class="form-control" data-table-search="#categoriesTable" placeholder="Tìm danh mục">
         </div>
         <div class="table-wrap">
-            <table class="table" id="categoriesTable">
-                <thead><tr><th>Tên</th><th>Mô tả</th><th>Trạng thái</th><th>Thao tác</th></tr></thead>
+            <table class="table admin-categories-table" id="categoriesTable">
+                <thead>
+                <tr>
+                    <th>Tên</th>
+                    <th>Mô tả</th>
+                    <th>Trạng thái</th>
+                    <th>Thao tác</th>
+                </tr>
+                </thead>
                 <tbody>
                 <tr th:each="category : ${categories}">
-                    <td colspan="4">
-                        <form th:action="@{/admin/categories}" method="post" class="form-row">
-                            <input type="hidden" name="id" th:value="${category.id}">
-                            <input class="form-control" name="name" th:value="${category.name}">
-                            <input class="form-control" name="description" th:value="${category.description}">
-                            <label class="check-row"><input type="checkbox" name="active" th:checked="${category.active}"> Đang hoạt động</label>
-                            <span class="actions">
+                    <td>
+                        <input class="form-control" name="name" th:value="${category.name}" required
+                               th:attr="form=${'categoryForm-' + category.id}">
+                    </td>
+                    <td>
+                        <input class="form-control" name="description" th:value="${category.description}"
+                               th:attr="form=${'categoryForm-' + category.id}">
+                    </td>
+                    <td>
+                        <label class="check-row">
+                            <input type="checkbox" name="active" th:checked="${category.active}"
+                                   th:attr="form=${'categoryForm-' + category.id}">
+                            Đang hoạt động
+                        </label>
+                    </td>
+                    <td>
+                        <div class="inline-form admin-row-actions">
+                            <form th:id="${'categoryForm-' + category.id}" th:action="@{/admin/categories}" method="post"
+                                  data-confirm="Bạn có chắc muốn lưu thay đổi danh mục này?">
+                                <input type="hidden" name="id" th:value="${category.id}">
                                 <button class="btn secondary small" type="submit">Lưu</button>
-                            </span>
-                        </form>
-                        <form th:action="@{/admin/categories/{id}/delete(id=${category.id})}" method="post" class="actions">
-                            <button class="btn danger small" type="submit">Xóa</button>
-                        </form>
+                            </form>
+                            <form th:action="@{/admin/categories/{id}/delete(id=${category.id})}" method="post"
+                                  data-confirm="Bạn có chắc muốn xóa danh mục này?">
+                                <button class="btn danger small" type="submit">Xóa</button>
+                            </form>
+                        </div>
                     </td>
                 </tr>
                 </tbody>

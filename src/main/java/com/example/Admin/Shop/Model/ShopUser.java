@@ -69,6 +69,6 @@ public class ShopUser {
     }
 
     public boolean isAdminLike() {
-        return role == ShopRole.ADMIN || role == ShopRole.SUPER_ADMIN || role == ShopRole.MANAGER;
+        return role == ShopRole.ADMIN || role == ShopRole.SUPER_ADMIN || role == ShopRole.MANAGER || role == ShopRole.STAFF;
     }
 }

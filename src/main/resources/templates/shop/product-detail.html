@@ -21,6 +21,9 @@
                 <span class="badge warn" th:if="${product.onSale}">Sale</span>
                 <span th:class="${product.quantity > 0 ? 'badge status-success' : 'badge status-danger'}"
                       th:text="${product.quantity > 0 ? 'Còn hàng' : 'Hết hàng'}">Còn hàng</span>
+                <span class="badge warn" th:if="${reviewCount > 0}"
+                      th:text="${#numbers.formatDecimal(averageRating,1,'COMMA',1,'POINT')} + ' ★'">4.5 ★</span>
+                <span class="badge" th:text="${reviewCount} + ' đánh giá'">0 đánh giá</span>
             </div>
             <h1 th:text="${product.name}">Tên sản phẩm</h1>
             <div class="price-row">
@@ -44,33 +47,13 @@
                 <p class="section-kicker">Review</p>
                 <h2>Đánh giá sản phẩm</h2>
             </div>
+            <span class="badge warn" th:if="${reviewCount > 0}"
+                  th:text="${#numbers.formatDecimal(averageRating,1,'COMMA',1,'POINT')} + ' ★ trung bình'">4.5 ★ trung bình</span>
         </div>
-        <div class="panel" th:if="${currentShopUser != null}">
-            <form th:action="@{/products/{id}/reviews(id=${product.id})}" method="post">
-                <div class="form-row">
-                    <div>
-                        <label>Số sao</label>
-                        <div class="clearable-select">
-                            <select name="rating" required>
-                                <option value="">Chọn số sao</option>
-                                <option value="5">5 sao</option>
-                                <option value="4">4 sao</option>
-                                <option value="3">3 sao</option>
-                                <option value="2">2 sao</option>
-                                <option value="1">1 sao</option>
-                            </select>
-                            <button type="button" class="clear-select-btn" aria-label="Xóa lựa chọn">×</button>
-                        </div>
-                    </div>
-                    <div>
-                        <label>Bình luận</label>
-                        <input class="form-control" name="comment" maxlength="1000" placeholder="Cảm nhận của bạn">
-                    </div>
-                </div>
-                <button class="btn secondary" type="submit">Gửi đánh giá</button>
-            </form>
+        <div class="panel" th:if="${reviewCount == 0}">
+            <p class="muted">Sản phẩm chưa có đánh giá đã duyệt.</p>
         </div>
-        <div class="grid grid-3">
+        <div class="grid grid-3" th:if="${reviewCount > 0}">
             <article class="card card-body" th:each="review : ${reviews}">
                 <span class="badge status-success" th:text="${review.rating} + ' sao'">5 sao</span>
                 <p th:text="${review.comment}">Bình luận</p>

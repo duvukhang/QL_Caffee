@@ -29,7 +29,8 @@
                     <td><strong th:text="${user.username}">user</strong><p class="muted" th:text="${user.fullName}"></p></td>
                     <td th:text="${user.email}">email</td>
                     <td>
-                        <form th:action="@{/admin/users/{id}/role(id=${user.id})}" method="post" class="inline-form">
+                        <form th:action="@{/admin/users/{id}/role(id=${user.id})}" method="post" class="inline-form"
+                              data-confirm="Bạn có chắc muốn đổi vai trò người dùng này?">
                             <div class="clearable-select">
                                 <select name="role" required data-enum-select>
                                     <option value="">Chọn vai trò</option>
@@ -45,7 +46,8 @@
                               th:text="${@shopLabels.enabledLabel(user.enabled)}">Đang hoạt động</span>
                     </td>
                     <td>
-                        <form th:action="@{/admin/users/{id}/toggle(id=${user.id})}" method="post">
+                        <form th:action="@{/admin/users/{id}/toggle(id=${user.id})}" method="post"
+                              data-confirm="Bạn có chắc muốn đổi trạng thái người dùng này?">
                             <button class="btn danger small" type="submit" th:text="${user.enabled ? 'Khóa' : 'Mở khóa'}">Khóa</button>
                         </form>
                     </td>

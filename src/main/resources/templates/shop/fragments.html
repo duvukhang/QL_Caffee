@@ -3,16 +3,24 @@
 <body>
 <nav th:fragment="topbar" class="topbar">
     <div class="topbar-inner">
-        <a class="brand" th:href="@{/}">
+        <a class="brand"
+           th:if="${currentShopUser == null or currentShopUser.role == T(com.example.Admin.Shop.Model.ShopRole).CUSTOMER}"
+           th:href="@{/}">
+            <span class="brand-mark">QC</span>
+            <span>QL Caffee</span>
+        </a>
+        <a class="brand"
+           th:if="${currentShopUser != null and currentShopUser.role != T(com.example.Admin.Shop.Model.ShopRole).CUSTOMER}"
+           th:href="@{/admin/dashboard}">
             <span class="brand-mark">QC</span>
             <span>QL Caffee</span>
         </a>
         <div class="nav">
-            <a th:href="@{/products}">Sản phẩm</a>
-            <a th:href="@{/cart}">Giỏ hàng</a>
-            <a th:href="@{/orders}">Đơn hàng</a>
-            <a th:href="@{/my-coupons}">Mã của tôi</a>
-            <a th:if="${currentShopUser != null and currentShopUser.adminLike}" th:href="@{/admin/dashboard}">Admin</a>
+            <a th:if="${currentShopUser == null or currentShopUser.role == T(com.example.Admin.Shop.Model.ShopRole).CUSTOMER}" th:href="@{/products}">Sản phẩm</a>
+            <a th:if="${currentShopUser != null and currentShopUser.role == T(com.example.Admin.Shop.Model.ShopRole).CUSTOMER}" th:href="@{/cart}">Giỏ hàng</a>
+            <a th:if="${currentShopUser != null and currentShopUser.role == T(com.example.Admin.Shop.Model.ShopRole).CUSTOMER}" th:href="@{/orders}">Đơn hàng</a>
+            <a th:if="${currentShopUser != null and currentShopUser.role == T(com.example.Admin.Shop.Model.ShopRole).CUSTOMER}" th:href="@{/my-coupons}">Mã của tôi</a>
+            <a th:if="${currentShopUser != null and currentShopUser.role != T(com.example.Admin.Shop.Model.ShopRole).CUSTOMER}" th:href="@{/admin/dashboard}">Dashboard</a>
             <a th:if="${currentShopUser == null}" th:href="@{/login}">Đăng nhập</a>
             <a th:if="${currentShopUser == null}" th:href="@{/register}">Đăng ký</a>
             <form th:if="${currentShopUser != null}" th:action="@{/logout}" method="post">

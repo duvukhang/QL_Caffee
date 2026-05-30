@@ -66,13 +66,15 @@
                     <td th:text="${#numbers.formatDecimal(coupon.minOrderAmount,0,'COMMA',0,'POINT')} + ' đ'">0 đ</td>
                     <td th:text="|${coupon.usedCount}/${coupon.usageLimit == null ? 'Không giới hạn' : coupon.usageLimit}|">0</td>
                     <td>
-                        <form th:action="@{/admin/coupons/{id}/toggle(id=${coupon.id})}" method="post">
+                        <form th:action="@{/admin/coupons/{id}/toggle(id=${coupon.id})}" method="post"
+                              data-confirm="Bạn có chắc muốn đổi trạng thái mã khuyến mãi này?">
                             <button th:class="${'btn secondary small ' + (coupon.active ? '' : 'disabled')}" type="submit"
                                     th:text="${@shopLabels.activeLabel(coupon.active)}">Đang hoạt động</button>
                         </form>
                     </td>
                     <td>
-                        <form th:action="@{/admin/coupons/{id}/assign(id=${coupon.id})}" method="post" class="inline-form">
+                        <form th:action="@{/admin/coupons/{id}/assign(id=${coupon.id})}" method="post" class="inline-form"
+                              data-confirm="Bạn có chắc muốn gán mã này cho khách hàng đã chọn?">
                             <div class="clearable-select">
                                 <select name="userId" required>
                                     <option value="">Chọn khách hàng</option>

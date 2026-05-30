@@ -253,6 +253,22 @@ button:disabled,
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+.grid-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.section-title.compact {
+  align-items: flex-start;
+  margin: 0 0 14px;
+}
+
+.section-title.compact h3 {
+  margin: 0;
+  color: var(--coffee-dark);
+  font-size: 1rem;
+  line-height: 1.25;
+}
+
 .card,
 .panel,
 .stat {
@@ -628,6 +644,10 @@ label {
   gap: 22px;
 }
 
+.admin-shell > section {
+  min-width: 0;
+}
+
 .sidebar {
   position: sticky;
   top: 92px;
@@ -845,11 +865,127 @@ label {
   max-width: 320px;
 }
 
+.table-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  flex-wrap: wrap;
+}
+
+.table-search .form-control {
+  flex: 1 1 280px;
+  max-width: none;
+}
+
+.table-search-count {
+  min-width: 72px;
+}
+
 .inline-form {
   display: flex;
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
+}
+
+.admin-row-actions {
+  flex-wrap: nowrap;
+}
+
+.admin-categories-table {
+  min-width: 900px;
+  table-layout: fixed;
+}
+
+.admin-categories-table th:nth-child(1),
+.admin-categories-table td:nth-child(1) {
+  width: 28%;
+}
+
+.admin-categories-table th:nth-child(2),
+.admin-categories-table td:nth-child(2) {
+  width: 40%;
+}
+
+.admin-categories-table th:nth-child(3),
+.admin-categories-table td:nth-child(3) {
+  width: 18%;
+}
+
+.admin-categories-table th:nth-child(4),
+.admin-categories-table td:nth-child(4) {
+  width: 14%;
+}
+
+.admin-orders-table {
+  min-width: 980px;
+  table-layout: fixed;
+}
+
+.admin-orders-table th:nth-child(1),
+.admin-orders-table td:nth-child(1) {
+  width: 145px;
+}
+
+.admin-orders-table th:nth-child(2),
+.admin-orders-table td:nth-child(2) {
+  width: 140px;
+}
+
+.admin-orders-table th:nth-child(3),
+.admin-orders-table td:nth-child(3) {
+  width: 118px;
+}
+
+.admin-orders-table th:nth-child(4),
+.admin-orders-table td:nth-child(4) {
+  width: 104px;
+}
+
+.admin-orders-table th:nth-child(5),
+.admin-orders-table td:nth-child(5) {
+  width: 260px;
+}
+
+.admin-orders-table th:nth-child(6),
+.admin-orders-table td:nth-child(6) {
+  width: 140px;
+}
+
+.admin-orders-table th:nth-child(7),
+.admin-orders-table td:nth-child(7) {
+  width: 190px;
+}
+
+.admin-order-code {
+  display: inline-block;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  color: var(--coffee-dark);
+  font-weight: 850;
+}
+
+.cell-text {
+  overflow-wrap: anywhere;
+}
+
+.admin-orders-table .badge {
+  min-height: 30px;
+  white-space: normal;
+}
+
+.admin-status-form {
+  flex-wrap: nowrap;
+}
+
+.admin-status-select {
+  min-width: 128px;
+  flex: 1 1 auto;
+}
+
+.admin-status-form .btn {
+  flex: 0 0 auto;
 }
 
 dialog {
@@ -911,6 +1047,7 @@ dialog::backdrop {
 
   .grid,
   .grid-3,
+  .grid-2,
   .stats {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -948,6 +1085,7 @@ dialog::backdrop {
 
   .grid,
   .grid-3,
+  .grid-2,
   .stats,
   .form-row {
     grid-template-columns: 1fr;

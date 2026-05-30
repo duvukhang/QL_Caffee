@@ -15,28 +15,122 @@
         <div class="section-title">
             <div>
                 <p class="section-kicker">Admin</p>
-                <h1>Tổng quan</h1>
+                <h1>Tổng quan vận hành</h1>
             </div>
         </div>
+
         <div class="stats">
-            <div class="stat"><span>Doanh thu</span><strong th:text="${#numbers.formatDecimal(revenue,0,'COMMA',0,'POINT')} + ' đ'">0 đ</strong></div>
-            <div class="stat"><span>Đơn hàng</span><strong th:text="${orderCount}">0</strong></div>
-            <div class="stat"><span>Khách hàng</span><strong th:text="${customerCount}">0</strong></div>
-            <div class="stat"><span>Sản phẩm</span><strong th:text="${productCount}">0</strong></div>
+            <div class="stat">
+                <span>Doanh thu hôm nay</span>
+                <strong th:text="${#numbers.formatDecimal(revenueToday,0,'COMMA',0,'POINT')} + ' đ'">0 đ</strong>
+                <p class="muted" th:text="${completedToday} + ' đơn hoàn thành'">0 đơn hoàn thành</p>
+            </div>
+            <div class="stat">
+                <span>Doanh thu tháng này</span>
+                <strong th:text="${#numbers.formatDecimal(revenueMonth,0,'COMMA',0,'POINT')} + ' đ'">0 đ</strong>
+                <p class="muted" th:text="${completedMonth} + ' đơn hoàn thành'">0 đơn hoàn thành</p>
+            </div>
+            <div class="stat">
+                <span>Doanh thu năm nay</span>
+                <strong th:text="${#numbers.formatDecimal(revenueYear,0,'COMMA',0,'POINT')} + ' đ'">0 đ</strong>
+                <p class="muted" th:text="${completedYear} + ' đơn hoàn thành'">0 đơn hoàn thành</p>
+            </div>
+            <div class="stat">
+                <span>Tổng doanh thu</span>
+                <strong th:text="${#numbers.formatDecimal(revenueTotal,0,'COMMA',0,'POINT')} + ' đ'">0 đ</strong>
+                <p class="muted">Tính trên đơn đã hoàn thành</p>
+            </div>
+        </div>
+
+        <div class="stats mt-16">
+            <div class="stat">
+                <span>Tổng đơn hàng</span>
+                <strong th:text="${orderCount}">0</strong>
+            </div>
+            <div class="stat">
+                <span>Đơn chờ xác nhận</span>
+                <strong th:text="${pendingOrders}">0</strong>
+            </div>
+            <div class="stat">
+                <span>Khách hàng</span>
+                <strong th:text="${customerCount}">0</strong>
+            </div>
+            <div class="stat">
+                <span>Sản phẩm đang bán</span>
+                <strong th:text="${productCount}">0</strong>
+            </div>
+        </div>
+
+        <div class="section-title">
+            <h2>Trạng thái đơn hàng</h2>
+        </div>
+        <div class="grid grid-3">
+            <article class="card card-body" th:each="row : ${statusRows}">
+                <span th:class="${'badge ' + @shopLabels.orderBadgeClass(row.status)}"
+                      th:text="${@shopLabels.label(row.status)}">Trạng thái</span>
+                <p class="price" th:text="${row.count} + ' đơn'">0 đơn</p>
+            </article>
         </div>
 
         <div class="section-title">
             <h2>Đơn chờ xác nhận</h2>
-            <span class="badge warn" th:text="${pendingOrders}">0</span>
+            <a class="btn secondary small" th:href="@{/admin/orders(status='PENDING')}">Xem tất cả</a>
         </div>
         <div class="table-wrap">
             <table class="table">
-                <thead><tr><th>Mã</th><th>Khách</th><th>Trạng thái</th><th>Tổng</th></tr></thead>
+                <thead>
+                <tr>
+                    <th>Mã</th>
+                    <th>Khách</th>
+                    <th>Thời gian</th>
+                    <th>Thanh toán</th>
+                    <th>Tổng</th>
+                </tr>
+                </thead>
                 <tbody>
+                <tr th:if="${#lists.isEmpty(pendingOrderList)}">
+                    <td colspan="5" class="muted">Không có đơn nào đang chờ xác nhận.</td>
+                </tr>
+                <tr th:each="order : ${pendingOrderList}">
+                    <td><strong th:text="${order.orderCode}">DH</strong></td>
+                    <td th:text="${order.user.fullName}">Khách</td>
+                    <td th:text="${#temporals.format(order.createdAt, 'dd/MM/yyyy HH:mm')}">01/01/2026 08:00</td>
+                    <td>
+                        <span class="badge" th:text="|${order.paymentMethod} / ${order.paymentStatus}|">COD / UNPAID</span>
+                    </td>
+                    <td th:text="${#numbers.formatDecimal(order.totalAmount,0,'COMMA',0,'POINT')} + ' đ'">0 đ</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section-title">
+            <h2>Đơn mới nhất</h2>
+            <a class="btn secondary small" th:href="@{/admin/orders}">Quản lý đơn</a>
+        </div>
+        <div class="table-wrap">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>Mã</th>
+                    <th>Khách</th>
+                    <th>Trạng thái</th>
+                    <th>Thời gian</th>
+                    <th>Tổng</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${#lists.isEmpty(recentOrders)}">
+                    <td colspan="5" class="muted">Chưa có đơn hàng.</td>
+                </tr>
                 <tr th:each="order : ${recentOrders}">
                     <td><strong th:text="${order.orderCode}">DH</strong></td>
                     <td th:text="${order.user.fullName}">Khách</td>
-                    <td><span th:class="${'badge ' + @shopLabels.orderBadgeClass(order.status)}" th:text="${@shopLabels.label(order.status)}">Chờ xác nhận</span></td>
+                    <td>
+                        <span th:class="${'badge ' + @shopLabels.orderBadgeClass(order.status)}"
+                              th:text="${@shopLabels.label(order.status)}">Chờ xác nhận</span>
+                    </td>
+                    <td th:text="${#temporals.format(order.createdAt, 'dd/MM/yyyy HH:mm')}">01/01/2026 08:00</td>
                     <td th:text="${#numbers.formatDecimal(order.totalAmount,0,'COMMA',0,'POINT')} + ' đ'">0 đ</td>
                 </tr>
                 </tbody>
@@ -45,6 +139,10 @@
 
         <div class="section-title"><h2>Sản phẩm sắp hết hàng</h2></div>
         <div class="grid grid-3">
+            <article class="card card-body" th:if="${#lists.isEmpty(lowStock)}">
+                <strong>Kho ổn định</strong>
+                <p class="muted">Không có sản phẩm dưới ngưỡng cảnh báo.</p>
+            </article>
             <article class="card card-body" th:each="product : ${lowStock}">
                 <strong th:text="${product.name}">Tên</strong>
                 <p class="badge danger" th:text="${'Còn ' + product.quantity}">Còn 0</p>

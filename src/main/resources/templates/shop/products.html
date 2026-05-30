@@ -80,6 +80,9 @@
                             <span class="badge warn" th:if="${product.onSale}">Sale</span>
                             <span th:class="${product.quantity > 0 ? 'badge status-success' : 'badge status-danger'}"
                                   th:text="${product.quantity > 0 ? 'Còn hàng' : 'Hết hàng'}">Còn hàng</span>
+                            <span class="badge warn"
+                                  th:if="${reviewCountByProductId[product.id] != null and reviewCountByProductId[product.id] > 0}"
+                                  th:text="${#numbers.formatDecimal(ratingByProductId[product.id],1,'COMMA',1,'POINT')} + ' ★'">4.5 ★</span>
                         </div>
                         <h3 class="product-name" th:text="${product.name}">Tên sản phẩm</h3>
                         <p class="muted product-desc" th:text="${product.category.name}">Danh mục</p>

@@ -18,7 +18,7 @@
                 <h1>Đơn hàng</h1>
             </div>
         </div>
-        <form class="panel inline-form" th:action="@{/admin/orders}" method="get" data-auto-submit="true">
+        <form class="panel inline-form admin-filter-form" th:action="@{/admin/orders}" method="get" data-auto-submit="true">
             <div class="clearable-select" data-submit-on-clear="true">
                 <select name="status" data-enum-select>
                     <option value="">Chọn trạng thái</option>
@@ -32,12 +32,22 @@
             <input class="form-control" data-table-search="#ordersTable" placeholder="Tìm mã đơn, khách, trạng thái">
         </div>
         <div class="table-wrap">
-            <table class="table" id="ordersTable">
-                <thead><tr><th>Mã</th><th>Khách</th><th>Ngày</th><th>Tổng</th><th>Thanh toán</th><th>Trạng thái</th><th>Cập nhật</th></tr></thead>
+            <table class="table admin-orders-table" id="ordersTable">
+                <thead>
+                <tr>
+                    <th>Mã</th>
+                    <th>Khách</th>
+                    <th>Ngày</th>
+                    <th>Tổng</th>
+                    <th>Thanh toán</th>
+                    <th>Trạng thái</th>
+                    <th>Cập nhật</th>
+                </tr>
+                </thead>
                 <tbody>
                 <tr th:each="order : ${orders}">
-                    <td><a th:href="@{/orders/{id}(id=${order.id})}" th:text="${order.orderCode}">DH</a></td>
-                    <td th:text="${order.user.fullName}">Khách</td>
+                    <td><a class="admin-order-code" th:href="@{/orders/{id}(id=${order.id})}" th:text="${order.orderCode}">DH</a></td>
+                    <td><span class="cell-text" th:text="${order.user.fullName}">Khách</span></td>
                     <td th:text="${#temporals.format(order.createdAt, 'dd/MM/yyyy HH:mm')}">Ngày</td>
                     <td th:text="${#numbers.formatDecimal(order.totalAmount,0,'COMMA',0,'POINT')} + ' đ'">0 đ</td>
                     <td>
@@ -45,8 +55,10 @@
                     </td>
                     <td><span th:class="${'badge ' + @shopLabels.orderBadgeClass(order.status)}" th:text="${@shopLabels.label(order.status)}">Chờ xác nhận</span></td>
                     <td>
-                        <form th:action="@{/admin/orders/{id}/status(id=${order.id})}" method="post" class="inline-form">
-                            <div class="clearable-select">
+                        <form th:action="@{/admin/orders/{id}/status(id=${order.id})}" method="post"
+                              class="inline-form admin-status-form"
+                              data-confirm="Bạn có chắc muốn cập nhật trạng thái đơn hàng này?">
+                            <div class="clearable-select admin-status-select">
                                 <select name="status" required data-enum-select>
                                     <option value="">Chọn trạng thái</option>
                                     <option th:each="s : ${statuses}" th:value="${s}" th:selected="${s == order.status}" th:text="${@shopLabels.label(s)}"></option>

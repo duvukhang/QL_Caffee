@@ -25,10 +25,12 @@
     FIXED_AMOUNT: "Giảm số tiền",
     IMPORT: "Nhập kho",
     EXPORT: "Xuất kho",
+    ORDER_CANCEL: "Hoàn kho đơn hủy",
     CUSTOMER: "Khách hàng",
     STAFF: "Nhân viên",
     ADMIN: "Quản trị viên",
-    MANAGER: "Quản lý"
+    MANAGER: "Quản lý",
+    SUPER_ADMIN: "Quản trị hệ thống"
   };
 
   function label(value) {

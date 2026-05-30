@@ -5,7 +5,6 @@ import java.util.List;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -13,7 +12,6 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 import org.springframework.security.web.savedrequest.RequestCache;
 import org.springframework.security.web.savedrequest.SavedRequest;
@@ -25,11 +23,6 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
-
-    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
-        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
-    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -43,24 +36,16 @@ public class SecurityConfig {
                                 "/products/**",
                                 "/login",
                                 "/register",
-                                "/login.html",
-                                "/home/**",
                                 "/css/**",
-                                "/img/**",
                                 "/js/**",
-                                "/web/**",
+                                "/img/**",
                                 "/uploads/**",
-                                "/public/**",
                                 "/error/**",
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**")
                         .permitAll()
-                        .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/Customer/Register", "/Customer/ForgotPassword").permitAll()
-                        .requestMatchers("/admin/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
-                        .requestMatchers("/manager/**").hasAnyRole("MANAGER", "ADMIN", "SUPER_ADMIN")
-                        .requestMatchers("/cashier/**").hasAnyRole("STAFF", "MANAGER", "ADMIN", "SUPER_ADMIN")
-                        .requestMatchers("/cart", "/cart/**", "/checkout", "/payments/**", "/orders/**", "/order/**", "/my-coupons", "/Customer/**")
+                        .requestMatchers("/admin/**").hasAnyRole("STAFF", "MANAGER", "ADMIN", "SUPER_ADMIN")
+                        .requestMatchers("/cart", "/cart/**", "/checkout", "/payments/**", "/orders/**", "/my-coupons")
                         .hasRole("CUSTOMER")
                         .anyRequest().authenticated())
                 .formLogin(login -> login
@@ -68,7 +53,7 @@ public class SecurityConfig {
                         .loginProcessingUrl("/login")
                         .successHandler((request, response, authentication) -> {
                             boolean adminLike = authentication.getAuthorities().stream()
-                                    .anyMatch(authority -> List.of("ROLE_ADMIN", "ROLE_SUPER_ADMIN", "ROLE_MANAGER")
+                                    .anyMatch(authority -> List.of("ROLE_STAFF", "ROLE_MANAGER", "ROLE_ADMIN", "ROLE_SUPER_ADMIN")
                                             .contains(authority.getAuthority()));
                             if (adminLike) {
                                 response.sendRedirect("/admin/dashboard");
@@ -88,8 +73,7 @@ public class SecurityConfig {
                         .invalidateHttpSession(true)
                         .permitAll())
                 .exceptionHandling(exception -> exception
-                        .accessDeniedPage("/login?denied"))
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                        .accessDeniedPage("/login?denied"));
 
         return http.build();
     }

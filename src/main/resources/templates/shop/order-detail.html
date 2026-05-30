@@ -60,11 +60,58 @@
                 <span>Thành tiền</span>
                 <strong th:text="${#numbers.formatDecimal(order.totalAmount,0,'COMMA',0,'POINT')} + ' đ'"></strong>
             </div>
-            <form th:if="${order.cancelableByCustomer}" th:action="@{/orders/{id}/cancel(id=${order.id})}" method="post" class="actions">
+            <form th:if="${order.cancelableByCustomer}" th:action="@{/orders/{id}/cancel(id=${order.id})}" method="post" class="actions"
+                  data-confirm="Bạn có chắc muốn hủy đơn hàng này?">
                 <button class="btn danger" type="submit">Hủy đơn</button>
             </form>
         </aside>
     </div>
+
+    <section th:if="${canReviewOrder}">
+        <div class="section-title">
+            <div>
+                <p class="section-kicker">Review</p>
+                <h2>Đánh giá từng sản phẩm</h2>
+            </div>
+        </div>
+        <div class="grid grid-2">
+            <article class="card card-body" th:each="item : ${order.items}">
+                <div class="section-title compact">
+                    <div>
+                        <h3 th:text="${item.productName}">Tên sản phẩm</h3>
+                        <p class="muted" th:text="${'Số lượng đã mua: ' + item.quantity}">Số lượng đã mua: 1</p>
+                    </div>
+                    <span class="badge status-success"
+                          th:if="${#lists.contains(reviewedProductIds, item.product.id)}">Đã gửi đánh giá</span>
+                </div>
+                <form th:if="${!#lists.contains(reviewedProductIds, item.product.id)}"
+                      th:action="@{/orders/{orderId}/products/{productId}/reviews(orderId=${order.id},productId=${item.product.id})}"
+                      method="post">
+                    <div class="form-row">
+                        <div>
+                            <label>Số sao</label>
+                            <div class="clearable-select">
+                                <select name="rating" required>
+                                    <option value="">Chọn số sao</option>
+                                    <option value="5">5 sao</option>
+                                    <option value="4">4 sao</option>
+                                    <option value="3">3 sao</option>
+                                    <option value="2">2 sao</option>
+                                    <option value="1">1 sao</option>
+                                </select>
+                                <button type="button" class="clear-select-btn" aria-label="Xóa lựa chọn">×</button>
+                            </div>
+                        </div>
+                        <div>
+                            <label>Bình luận</label>
+                            <textarea name="comment" maxlength="1000" placeholder="Cảm nhận của bạn"></textarea>
+                        </div>
+                    </div>
+                    <button class="btn secondary" type="submit">Gửi đánh giá</button>
+                </form>
+            </article>
+        </div>
+    </section>
 </main>
 </body>
 </html>

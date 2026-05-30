@@ -4,8 +4,12 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Comparator;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.format.annotation.DateTimeFormat;
@@ -74,12 +78,39 @@ public class ShopAdminController {
 
     @GetMapping("/admin/dashboard")
     public String dashboard(Model model) {
-        model.addAttribute("revenue", orderRepository.sumCompletedRevenue());
+        LocalDate today = LocalDate.now();
+        LocalDateTime startOfDay = today.atStartOfDay();
+        LocalDateTime startOfNextDay = today.plusDays(1).atStartOfDay();
+        LocalDateTime startOfMonth = today.withDayOfMonth(1).atStartOfDay();
+        LocalDateTime startOfNextMonth = today.withDayOfMonth(1).plusMonths(1).atStartOfDay();
+        LocalDateTime startOfYear = today.withDayOfYear(1).atStartOfDay();
+        LocalDateTime startOfNextYear = today.withDayOfYear(1).plusYears(1).atStartOfDay();
+
+        Map<ShopOrderStatus, Long> statusCounts = new EnumMap<>(ShopOrderStatus.class);
+        for (ShopOrderStatus status : ShopOrderStatus.values()) {
+            statusCounts.put(status, orderRepository.countByStatus(status));
+        }
+        List<StatusSummary> statusRows = statusCounts.entrySet().stream()
+                .map(entry -> new StatusSummary(entry.getKey(), entry.getValue()))
+                .toList();
+
+        model.addAttribute("revenueTotal", orderRepository.sumCompletedRevenue());
+        model.addAttribute("revenueToday", completedRevenueBetween(startOfDay, startOfNextDay));
+        model.addAttribute("revenueMonth", completedRevenueBetween(startOfMonth, startOfNextMonth));
+        model.addAttribute("revenueYear", completedRevenueBetween(startOfYear, startOfNextYear));
+        model.addAttribute("completedToday", orderRepository.countByStatusAndCreatedAtBetween(
+                ShopOrderStatus.COMPLETED, startOfDay, startOfNextDay));
+        model.addAttribute("completedMonth", orderRepository.countByStatusAndCreatedAtBetween(
+                ShopOrderStatus.COMPLETED, startOfMonth, startOfNextMonth));
+        model.addAttribute("completedYear", orderRepository.countByStatusAndCreatedAtBetween(
+                ShopOrderStatus.COMPLETED, startOfYear, startOfNextYear));
         model.addAttribute("orderCount", orderRepository.count());
         model.addAttribute("customerCount", userRepository.countByRole(ShopRole.CUSTOMER));
         model.addAttribute("productCount", productRepository.countByActiveTrue());
         model.addAttribute("lowStock", productRepository.findByQuantityLessThanOrderByQuantityAsc(5));
-        model.addAttribute("pendingOrders", orderRepository.countByStatus(ShopOrderStatus.PENDING));
+        model.addAttribute("pendingOrders", statusCounts.get(ShopOrderStatus.PENDING));
+        model.addAttribute("statusRows", statusRows);
+        model.addAttribute("pendingOrderList", orderRepository.findTop10ByStatusOrderByCreatedAtDesc(ShopOrderStatus.PENDING));
         model.addAttribute("recentOrders", orderRepository.findTop10ByOrderByCreatedAtDesc());
         return "shop/admin/dashboard";
     }
@@ -432,5 +463,12 @@ public class ShopAdminController {
             product.getImages().add(image);
             hasExistingImages = true;
         }
+    }
+
+    private BigDecimal completedRevenueBetween(LocalDateTime start, LocalDateTime end) {
+        return orderRepository.sumRevenueByStatusAndCreatedAtBetween(ShopOrderStatus.COMPLETED, start, end);
+    }
+
+    public record StatusSummary(ShopOrderStatus status, long count) {
     }
 }

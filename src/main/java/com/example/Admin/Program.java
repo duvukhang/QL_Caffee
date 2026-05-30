@@ -12,8 +12,8 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 @SpringBootApplication(scanBasePackages = "com.example.Admin")
-@EntityScan(basePackages = {"com.example.Admin.Models", "com.example.Admin.Shop.Model"})
-@EnableJpaRepositories(basePackages = {"com.example.Admin.Repositories", "com.example.Admin.Shop.Repository"})
+@EntityScan(basePackages = "com.example.Admin.Shop.Model")
+@EnableJpaRepositories(basePackages = "com.example.Admin.Shop.Repository")
 public class Program {
 
     public static void main(String[] args) {
@@ -71,15 +71,6 @@ public class Program {
         } catch (SQLException ex) {
             System.out.println("Could not auto-create StoreManagement1. Run create-database.sql if the database is missing. "
                     + ex.getMessage());
-        }
-
-        String appUrl = "jdbc:sqlserver://127.0.0.1:1433;databaseName=StoreManagement1;encrypt=true;trustServerCertificate=true;";
-        try (var connection = DriverManager.getConnection(appUrl, username, password);
-                var statement = connection.createStatement()) {
-            statement.executeUpdate("IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'management') EXEC('CREATE SCHEMA management')");
-            statement.executeUpdate("IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'customers') EXEC('CREATE SCHEMA customers')");
-        } catch (SQLException ex) {
-            System.out.println("Could not auto-create support schemas. " + ex.getMessage());
         }
 
         ensureUnicodeShopColumns(username, password);

@@ -38,7 +38,8 @@
                     <td>
                         <div class="inline-form">
                             <a class="btn secondary small" th:href="@{/admin/products/{id}/edit(id=${product.id})}">Sửa</a>
-                            <form th:action="@{/admin/products/{id}/delete(id=${product.id})}" method="post">
+                            <form th:action="@{/admin/products/{id}/delete(id=${product.id})}" method="post"
+                                  data-confirm="Bạn có chắc muốn tắt sản phẩm này?">
                                 <button class="btn danger small" type="submit">Tắt</button>
                             </form>
                         </div>
