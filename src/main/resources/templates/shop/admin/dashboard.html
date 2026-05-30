@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard</title>
+    <title>Tổng quan admin</title>
     <link rel="stylesheet" th:href="@{/css/shop.css}">
 </head>
 <body>
@@ -12,30 +12,42 @@
 <main class="container admin-shell">
     <div th:replace="~{shop/fragments :: adminNav}"></div>
     <section>
-        <div class="section-title"><h1>Dashboard</h1></div>
+        <div class="section-title">
+            <div>
+                <p class="section-kicker">Admin</p>
+                <h1>Tổng quan</h1>
+            </div>
+        </div>
         <div class="stats">
             <div class="stat"><span>Doanh thu</span><strong th:text="${#numbers.formatDecimal(revenue,0,'COMMA',0,'POINT')} + ' đ'">0 đ</strong></div>
             <div class="stat"><span>Đơn hàng</span><strong th:text="${orderCount}">0</strong></div>
             <div class="stat"><span>Khách hàng</span><strong th:text="${customerCount}">0</strong></div>
             <div class="stat"><span>Sản phẩm</span><strong th:text="${productCount}">0</strong></div>
         </div>
-        <div class="section-title"><h2>Đơn chờ xác nhận</h2><span class="badge warn" th:text="${pendingOrders}">0</span></div>
-        <table class="table">
-            <thead><tr><th>Mã</th><th>Khách</th><th>Trạng thái</th><th>Tổng</th></tr></thead>
-            <tbody>
-            <tr th:each="order : ${recentOrders}">
-                <td th:text="${order.orderCode}">DH</td>
-                <td th:text="${order.user.fullName}">Khách</td>
-                <td th:text="${order.status}">PENDING</td>
-                <td th:text="${#numbers.formatDecimal(order.totalAmount,0,'COMMA',0,'POINT')} + ' đ'">0 đ</td>
-            </tr>
-            </tbody>
-        </table>
-        <div class="section-title"><h2>Sắp hết hàng</h2></div>
+
+        <div class="section-title">
+            <h2>Đơn chờ xác nhận</h2>
+            <span class="badge warn" th:text="${pendingOrders}">0</span>
+        </div>
+        <div class="table-wrap">
+            <table class="table">
+                <thead><tr><th>Mã</th><th>Khách</th><th>Trạng thái</th><th>Tổng</th></tr></thead>
+                <tbody>
+                <tr th:each="order : ${recentOrders}">
+                    <td><strong th:text="${order.orderCode}">DH</strong></td>
+                    <td th:text="${order.user.fullName}">Khách</td>
+                    <td><span th:class="${'badge ' + @shopLabels.orderBadgeClass(order.status)}" th:text="${@shopLabels.label(order.status)}">Chờ xác nhận</span></td>
+                    <td th:text="${#numbers.formatDecimal(order.totalAmount,0,'COMMA',0,'POINT')} + ' đ'">0 đ</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section-title"><h2>Sản phẩm sắp hết hàng</h2></div>
         <div class="grid grid-3">
             <article class="card card-body" th:each="product : ${lowStock}">
                 <strong th:text="${product.name}">Tên</strong>
-                <p class="badge danger" th:text="'Còn ' + ${product.quantity}">Còn 0</p>
+                <p class="badge danger" th:text="${'Còn ' + product.quantity}">Còn 0</p>
             </article>
         </div>
     </section>

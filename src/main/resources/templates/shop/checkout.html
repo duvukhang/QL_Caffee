@@ -10,30 +10,73 @@
 <div th:replace="~{shop/fragments :: topbar}"></div>
 <div th:replace="~{shop/fragments :: flash}"></div>
 <main class="container">
-    <div class="section-title"><h1>Thanh toán</h1></div>
-    <div class="filters">
-        <form class="panel" th:action="@{/checkout}" method="post">
-            <div class="form-row">
-                <div><label>Người nhận</label><input class="form-control" name="receiverName" th:value="${currentShopUser.fullName}" required></div>
-                <div><label>Số điện thoại</label><input class="form-control" name="receiverPhone" th:value="${currentShopUser.phone}" pattern="\d{10,11}" required></div>
-            </div>
-            <label>Địa chỉ giao hàng</label>
-            <input class="form-control" name="shippingAddress" th:value="${currentShopUser.address}" required>
-            <div style="margin-top:12px">
-                <label>Thanh toán</label>
-                <select name="paymentMethod">
-                    <option th:each="method : ${paymentMethods}" th:value="${method}" th:text="${method}"></option>
-                </select>
-            </div>
-            <div class="actions"><button class="btn" type="submit">Đặt hàng</button></div>
+    <div class="section-title">
+        <div>
+            <p class="section-kicker">Checkout</p>
+            <h1>Thanh toán</h1>
+        </div>
+    </div>
+    <div class="checkout-grid">
+        <form th:action="@{/checkout}" method="post">
+            <section class="panel checkout-section">
+                <h2>Thông tin nhận hàng</h2>
+                <div class="form-row">
+                    <div>
+                        <label>Người nhận</label>
+                        <input class="form-control" name="receiverName" th:value="${currentShopUser.fullName}" required>
+                    </div>
+                    <div>
+                        <label>Số điện thoại</label>
+                        <input class="form-control" name="receiverPhone" th:value="${currentShopUser.phone}" pattern="\d{10,11}" required>
+                    </div>
+                </div>
+                <div class="field">
+                    <label>Địa chỉ giao hàng</label>
+                    <input class="form-control" name="shippingAddress" th:value="${currentShopUser.address}" required>
+                </div>
+            </section>
+
+            <section class="panel checkout-section">
+                <h2>Phương thức thanh toán</h2>
+                <div class="clearable-select">
+                    <select name="paymentMethod" required data-enum-select>
+                        <option value="">Chọn phương thức thanh toán</option>
+                        <option th:each="method : ${paymentMethods}" th:value="${method}" th:text="${@shopLabels.label(method)}"></option>
+                    </select>
+                    <button type="button" class="clear-select-btn" aria-label="Xóa lựa chọn">×</button>
+                </div>
+                <div class="actions">
+                    <button class="btn" type="submit">Đặt hàng</button>
+                    <a class="btn secondary" th:href="@{/cart}">Quay lại giỏ</a>
+                </div>
+            </section>
         </form>
-        <aside class="panel">
-            <h2>Đơn hàng</h2>
-            <p th:each="item : ${cart.items}"><span th:text="${item.product.name}">Tên</span> x <span th:text="${item.quantity}">1</span></p>
-            <p>Tạm tính: <strong th:text="${#numbers.formatDecimal(subtotal,0,'COMMA',0,'POINT')} + ' đ'">0 đ</strong></p>
-            <p>Mã: <strong th:text="${couponCode ?: 'Không dùng'}">SALE10</strong></p>
-            <p>Giảm: <strong th:text="${#numbers.formatDecimal(couponQuote.discountAmount,0,'COMMA',0,'POINT')} + ' đ'">0 đ</strong></p>
-            <p>Thành tiền: <strong class="price" th:text="${#numbers.formatDecimal(couponQuote.totalAmount,0,'COMMA',0,'POINT')} + ' đ'">0 đ</strong></p>
+        <aside class="panel summary">
+            <h2>Tóm tắt đơn hàng</h2>
+            <div class="order-line" th:each="item : ${cart.items}">
+                <span><span th:text="${item.product.name}">Tên</span> x <span th:text="${item.quantity}">1</span></span>
+                <strong th:text="${#numbers.formatDecimal(item.lineTotal,0,'COMMA',0,'POINT')} + ' đ'">0 đ</strong>
+            </div>
+            <div class="summary-row">
+                <span>Tạm tính</span>
+                <strong th:text="${#numbers.formatDecimal(subtotal,0,'COMMA',0,'POINT')} + ' đ'">0 đ</strong>
+            </div>
+            <div class="summary-row">
+                <span>Mã khuyến mãi</span>
+                <strong th:text="${couponCode ?: 'Không dùng'}">SALE10</strong>
+            </div>
+            <div class="summary-row">
+                <span>Giảm giá</span>
+                <strong th:text="${#numbers.formatDecimal(couponQuote.discountAmount,0,'COMMA',0,'POINT')} + ' đ'">0 đ</strong>
+            </div>
+            <div class="summary-row">
+                <span>Phí vận chuyển</span>
+                <strong>0 đ</strong>
+            </div>
+            <div class="summary-row total">
+                <span>Thành tiền</span>
+                <strong th:text="${#numbers.formatDecimal(couponQuote.totalAmount,0,'COMMA',0,'POINT')} + ' đ'">0 đ</strong>
+            </div>
         </aside>
     </div>
 </main>

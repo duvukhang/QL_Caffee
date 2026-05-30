@@ -3,7 +3,10 @@
 <body>
 <nav th:fragment="topbar" class="topbar">
     <div class="topbar-inner">
-        <a class="brand" th:href="@{/}">QL Caffee</a>
+        <a class="brand" th:href="@{/}">
+            <span class="brand-mark">QC</span>
+            <span>QL Caffee</span>
+        </a>
         <div class="nav">
             <a th:href="@{/products}">Sản phẩm</a>
             <a th:href="@{/cart}">Giỏ hàng</a>
@@ -17,6 +20,9 @@
             </form>
         </div>
     </div>
+    <script defer th:src="@{/js/status-labels.js}"></script>
+    <script defer th:src="@{/js/clearable-select.js}"></script>
+    <script defer th:src="@{/js/ui-helpers.js}"></script>
 </nav>
 
 <div th:fragment="flash" class="toast">
@@ -29,11 +35,11 @@
 </div>
 
 <aside th:fragment="adminNav" class="sidebar">
-    <a th:href="@{/admin/dashboard}">Dashboard</a>
+    <a th:href="@{/admin/dashboard}">Tổng quan</a>
     <a th:href="@{/admin/categories}">Danh mục</a>
     <a th:href="@{/admin/products}">Sản phẩm</a>
     <a th:href="@{/admin/inventory}">Tồn kho</a>
-    <a th:href="@{/admin/coupons}">Coupon</a>
+    <a th:href="@{/admin/coupons}">Mã khuyến mãi</a>
     <a th:href="@{/admin/orders}">Đơn hàng</a>
     <a th:href="@{/admin/users}">Người dùng</a>
     <a th:href="@{/admin/reviews}">Đánh giá</a>

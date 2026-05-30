@@ -11,36 +11,55 @@
 <div th:replace="~{shop/fragments :: flash}"></div>
 <main class="container">
     <div class="section-title">
-        <h1 th:text="${order.orderCode}">Đơn hàng</h1>
-        <span class="badge" th:text="${order.status}">PENDING</span>
+        <div>
+            <p class="section-kicker">Chi tiết đơn</p>
+            <h1 th:text="${order.orderCode}">Đơn hàng</h1>
+        </div>
+        <span th:class="${'badge ' + @shopLabels.orderBadgeClass(order.status)}" th:text="${@shopLabels.label(order.status)}">Chờ xác nhận</span>
     </div>
-    <div class="filters">
+    <div class="two-column">
         <section>
-            <table class="table">
-                <thead><tr><th>Sản phẩm</th><th>Giá</th><th>Số lượng</th><th>Tổng</th></tr></thead>
-                <tbody>
-                <tr th:each="item : ${order.items}">
-                    <td th:text="${item.productName}">Tên</td>
-                    <td th:text="${#numbers.formatDecimal(item.price,0,'COMMA',0,'POINT')} + ' đ'">0 đ</td>
-                    <td th:text="${item.quantity}">1</td>
-                    <td th:text="${#numbers.formatDecimal(item.total,0,'COMMA',0,'POINT')} + ' đ'">0 đ</td>
-                </tr>
-                </tbody>
-            </table>
+            <div class="table-wrap">
+                <table class="table">
+                    <thead><tr><th>Sản phẩm</th><th>Giá</th><th>Số lượng</th><th>Tổng</th></tr></thead>
+                    <tbody>
+                    <tr th:each="item : ${order.items}">
+                        <td th:text="${item.productName}">Tên</td>
+                        <td th:text="${#numbers.formatDecimal(item.price,0,'COMMA',0,'POINT')} + ' đ'">0 đ</td>
+                        <td th:text="${item.quantity}">1</td>
+                        <td th:text="${#numbers.formatDecimal(item.total,0,'COMMA',0,'POINT')} + ' đ'">0 đ</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
         </section>
-        <aside class="panel">
+        <aside class="panel summary">
+            <h2>Thông tin giao hàng</h2>
             <p><strong>Người nhận:</strong> <span th:text="${order.receiverName}"></span></p>
             <p><strong>Điện thoại:</strong> <span th:text="${order.receiverPhone}"></span></p>
             <p><strong>Địa chỉ:</strong> <span th:text="${order.shippingAddress}"></span></p>
-            <p><strong>Thanh toán:</strong> <span th:text="${order.paymentMethod}"></span></p>
-            <p><strong>Trạng thái thanh toán:</strong> <span th:text="${order.paymentStatus}"></span></p>
+            <p><strong>Thanh toán:</strong> <span th:text="${@shopLabels.label(order.paymentMethod)}"></span></p>
+            <p>
+                <strong>Trạng thái thanh toán:</strong>
+                <span th:class="${'badge ' + @shopLabels.orderBadgeClass(order.paymentStatus)}"
+                      th:text="${@shopLabels.label(order.paymentStatus)}"></span>
+            </p>
             <p th:if="${order.paymentReference != null}"><strong>Mã giao dịch:</strong> <span th:text="${order.paymentReference}"></span></p>
             <div th:if="${order.paymentMethod != T(com.example.Admin.Shop.Model.PaymentMethod).COD and order.paymentStatus == T(com.example.Admin.Shop.Model.PaymentStatus).PENDING}" class="actions">
                 <a class="btn" th:href="@{/payments/{id}(id=${order.id})}">Tiếp tục thanh toán</a>
             </div>
-            <p>Tạm tính: <strong th:text="${#numbers.formatDecimal(order.subtotal,0,'COMMA',0,'POINT')} + ' đ'"></strong></p>
-            <p>Giảm: <strong th:text="${#numbers.formatDecimal(order.discountAmount,0,'COMMA',0,'POINT')} + ' đ'"></strong></p>
-            <p>Thành tiền: <strong class="price" th:text="${#numbers.formatDecimal(order.totalAmount,0,'COMMA',0,'POINT')} + ' đ'"></strong></p>
+            <div class="summary-row">
+                <span>Tạm tính</span>
+                <strong th:text="${#numbers.formatDecimal(order.subtotal,0,'COMMA',0,'POINT')} + ' đ'"></strong>
+            </div>
+            <div class="summary-row">
+                <span>Giảm giá</span>
+                <strong th:text="${#numbers.formatDecimal(order.discountAmount,0,'COMMA',0,'POINT')} + ' đ'"></strong>
+            </div>
+            <div class="summary-row total">
+                <span>Thành tiền</span>
+                <strong th:text="${#numbers.formatDecimal(order.totalAmount,0,'COMMA',0,'POINT')} + ' đ'"></strong>
+            </div>
             <form th:if="${order.cancelableByCustomer}" th:action="@{/orders/{id}/cancel(id=${order.id})}" method="post" class="actions">
                 <button class="btn danger" type="submit">Hủy đơn</button>
             </form>

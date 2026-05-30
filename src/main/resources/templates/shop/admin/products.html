@@ -12,23 +12,41 @@
 <main class="container admin-shell">
     <div th:replace="~{shop/fragments :: adminNav}"></div>
     <section>
-        <div class="section-title"><h1>Sản phẩm</h1><a class="btn" th:href="@{/admin/products/new}">Thêm</a></div>
-        <table class="table">
-            <thead><tr><th>Ảnh</th><th>Tên</th><th>Giá</th><th>Tồn</th><th>Trạng thái</th><th></th></tr></thead>
-            <tbody>
-            <tr th:each="product : ${products}">
-                <td><img th:src="${product.mainImagePath}" th:alt="${product.name}" style="width:80px;height:60px;object-fit:cover;border-radius:6px"></td>
-                <td><strong th:text="${product.name}">Tên</strong><p class="muted" th:text="${product.category.name}">DM</p></td>
-                <td th:text="${#numbers.formatDecimal(product.effectivePrice,0,'COMMA',0,'POINT')} + ' đ'">0 đ</td>
-                <td><span th:class="${product.quantity < 5} ? 'badge danger' : 'badge'" th:text="${product.quantity}">0</span></td>
-                <td th:text="${product.active} ? 'Active' : 'Inactive'">Active</td>
-                <td class="actions">
-                    <a class="btn secondary small" th:href="@{/admin/products/{id}/edit(id=${product.id})}">Sửa</a>
-                    <form th:action="@{/admin/products/{id}/delete(id=${product.id})}" method="post"><button class="btn danger small" type="submit">Tắt</button></form>
-                </td>
-            </tr>
-            </tbody>
-        </table>
+        <div class="section-title">
+            <div>
+                <p class="section-kicker">Quản lý</p>
+                <h1>Sản phẩm</h1>
+            </div>
+            <a class="btn" th:href="@{/admin/products/new}">Thêm sản phẩm</a>
+        </div>
+        <div class="admin-tools">
+            <input class="form-control" data-table-search="#productsTable" placeholder="Tìm sản phẩm, danh mục, trạng thái">
+        </div>
+        <div class="table-wrap">
+            <table class="table" id="productsTable">
+                <thead><tr><th>Ảnh</th><th>Tên</th><th>Giá</th><th>Tồn</th><th>Trạng thái</th><th></th></tr></thead>
+                <tbody>
+                <tr th:each="product : ${products}">
+                    <td><img class="admin-thumb" th:src="${product.mainImagePath}" th:alt="${product.name}"></td>
+                    <td><strong th:text="${product.name}">Tên</strong><p class="muted" th:text="${product.category.name}">Danh mục</p></td>
+                    <td th:text="${#numbers.formatDecimal(product.effectivePrice,0,'COMMA',0,'POINT')} + ' đ'">0 đ</td>
+                    <td><span th:class="${product.quantity < 5 ? 'badge danger' : 'badge status-success'}" th:text="${product.quantity}">0</span></td>
+                    <td>
+                        <span th:class="${'badge ' + @shopLabels.activeBadgeClass(product.active)}"
+                              th:text="${@shopLabels.activeLabel(product.active)}">Đang hoạt động</span>
+                    </td>
+                    <td>
+                        <div class="inline-form">
+                            <a class="btn secondary small" th:href="@{/admin/products/{id}/edit(id=${product.id})}">Sửa</a>
+                            <form th:action="@{/admin/products/{id}/delete(id=${product.id})}" method="post">
+                                <button class="btn danger small" type="submit">Tắt</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
     </section>
 </main>
 </body>

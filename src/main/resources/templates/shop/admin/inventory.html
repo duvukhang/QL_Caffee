@@ -12,36 +12,57 @@
 <main class="container admin-shell">
     <div th:replace="~{shop/fragments :: adminNav}"></div>
     <section>
-        <div class="section-title"><h1>Tồn kho</h1></div>
+        <div class="section-title">
+            <div>
+                <p class="section-kicker">Quản lý</p>
+                <h1>Tồn kho</h1>
+            </div>
+        </div>
         <form class="panel" th:action="@{/admin/inventory/import}" method="post">
             <div class="form-row">
-                <div><label>Sản phẩm</label><select name="productId"><option th:each="product : ${products}" th:value="${product.id}" th:text="${product.name}"></option></select></div>
+                <div>
+                    <label>Sản phẩm</label>
+                    <div class="clearable-select">
+                        <select name="productId" required>
+                            <option value="">Chọn sản phẩm</option>
+                            <option th:each="product : ${products}" th:value="${product.id}" th:text="${product.name}"></option>
+                        </select>
+                        <button type="button" class="clear-select-btn" aria-label="Xóa lựa chọn">×</button>
+                    </div>
+                </div>
                 <div><label>Số lượng nhập</label><input class="form-control" type="number" name="quantity" min="1" required></div>
             </div>
-            <label>Ghi chú</label>
-            <input class="form-control" name="note">
+            <div class="field">
+                <label>Ghi chú</label>
+                <input class="form-control" name="note" placeholder="Ví dụ: Nhập hàng đầu tuần">
+            </div>
             <div class="actions"><button class="btn" type="submit">Nhập kho</button></div>
         </form>
-        <div class="section-title"><h2>Sắp hết hàng</h2></div>
+        <div class="section-title"><h2>Sản phẩm sắp hết hàng</h2></div>
         <div class="grid grid-3">
             <article class="card card-body" th:each="product : ${lowStock}">
                 <strong th:text="${product.name}">Tên</strong>
-                <p class="badge danger" th:text="'Còn ' + ${product.quantity}">Còn 0</p>
+                <p class="badge danger" th:text="${'Còn ' + product.quantity}">Còn 0</p>
             </article>
         </div>
         <div class="section-title"><h2>Lịch sử nhập/xuất</h2></div>
-        <table class="table">
-            <thead><tr><th>Ngày</th><th>Sản phẩm</th><th>Loại</th><th>Số lượng</th><th>Ghi chú</th></tr></thead>
-            <tbody>
-            <tr th:each="history : ${histories}">
-                <td th:text="${#temporals.format(history.createdAt, 'dd/MM/yyyy HH:mm')}">Ngày</td>
-                <td th:text="${history.product.name}">SP</td>
-                <td th:text="${history.type}">IMPORT</td>
-                <td th:text="${history.quantity}">1</td>
-                <td th:text="${history.note}">Note</td>
-            </tr>
-            </tbody>
-        </table>
+        <div class="admin-tools">
+            <input class="form-control" data-table-search="#inventoryTable" placeholder="Tìm sản phẩm, loại, ghi chú">
+        </div>
+        <div class="table-wrap">
+            <table class="table" id="inventoryTable">
+                <thead><tr><th>Ngày</th><th>Sản phẩm</th><th>Loại</th><th>Số lượng</th><th>Ghi chú</th></tr></thead>
+                <tbody>
+                <tr th:each="history : ${histories}">
+                    <td th:text="${#temporals.format(history.createdAt, 'dd/MM/yyyy HH:mm')}">Ngày</td>
+                    <td th:text="${history.product.name}">SP</td>
+                    <td><span class="badge status-info" th:text="${@shopLabels.label(history.type)}">Nhập kho</span></td>
+                    <td th:text="${history.quantity}">1</td>
+                    <td th:text="${history.note}">Note</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
     </section>
 </main>
 </body>

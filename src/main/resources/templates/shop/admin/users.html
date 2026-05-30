@@ -12,30 +12,47 @@
 <main class="container admin-shell">
     <div th:replace="~{shop/fragments :: adminNav}"></div>
     <section>
-        <div class="section-title"><h1>Người dùng</h1></div>
-        <table class="table">
-            <thead><tr><th>Username</th><th>Email</th><th>Vai trò</th><th>Trạng thái</th><th></th></tr></thead>
-            <tbody>
-            <tr th:each="user : ${users}">
-                <td><strong th:text="${user.username}">user</strong><p class="muted" th:text="${user.fullName}"></p></td>
-                <td th:text="${user.email}">email</td>
-                <td>
-                    <form th:action="@{/admin/users/{id}/role(id=${user.id})}" method="post" class="actions">
-                        <select name="role">
-                            <option th:each="role : ${roles}" th:value="${role}" th:selected="${role == user.role}" th:text="${role}"></option>
-                        </select>
-                        <button class="btn secondary small" type="submit">Lưu</button>
-                    </form>
-                </td>
-                <td th:text="${user.enabled} ? 'Enabled' : 'Locked'">Enabled</td>
-                <td>
-                    <form th:action="@{/admin/users/{id}/toggle(id=${user.id})}" method="post">
-                        <button class="btn danger small" type="submit" th:text="${user.enabled} ? 'Khóa' : 'Mở khóa'">Khóa</button>
-                    </form>
-                </td>
-            </tr>
-            </tbody>
-        </table>
+        <div class="section-title">
+            <div>
+                <p class="section-kicker">Quản lý</p>
+                <h1>Người dùng</h1>
+            </div>
+        </div>
+        <div class="admin-tools">
+            <input class="form-control" data-table-search="#usersTable" placeholder="Tìm username, email, vai trò">
+        </div>
+        <div class="table-wrap">
+            <table class="table" id="usersTable">
+                <thead><tr><th>Username</th><th>Email</th><th>Vai trò</th><th>Trạng thái</th><th></th></tr></thead>
+                <tbody>
+                <tr th:each="user : ${users}">
+                    <td><strong th:text="${user.username}">user</strong><p class="muted" th:text="${user.fullName}"></p></td>
+                    <td th:text="${user.email}">email</td>
+                    <td>
+                        <form th:action="@{/admin/users/{id}/role(id=${user.id})}" method="post" class="inline-form">
+                            <div class="clearable-select">
+                                <select name="role" required data-enum-select>
+                                    <option value="">Chọn vai trò</option>
+                                    <option th:each="role : ${roles}" th:value="${role}" th:selected="${role == user.role}" th:text="${@shopLabels.label(role)}"></option>
+                                </select>
+                                <button type="button" class="clear-select-btn" aria-label="Xóa lựa chọn">×</button>
+                            </div>
+                            <button class="btn secondary small" type="submit">Lưu</button>
+                        </form>
+                    </td>
+                    <td>
+                        <span th:class="${user.enabled ? 'badge status-success' : 'badge status-danger'}"
+                              th:text="${@shopLabels.enabledLabel(user.enabled)}">Đang hoạt động</span>
+                    </td>
+                    <td>
+                        <form th:action="@{/admin/users/{id}/toggle(id=${user.id})}" method="post">
+                            <button class="btn danger small" type="submit" th:text="${user.enabled ? 'Khóa' : 'Mở khóa'}">Khóa</button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
     </section>
 </main>
 </body>

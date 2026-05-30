@@ -12,23 +12,42 @@
 <main class="container admin-shell">
     <div th:replace="~{shop/fragments :: adminNav}"></div>
     <section>
-        <div class="section-title"><h1>Đánh giá</h1></div>
-        <table class="table">
-            <thead><tr><th>Sản phẩm</th><th>Khách</th><th>Sao</th><th>Bình luận</th><th>Trạng thái</th><th></th></tr></thead>
-            <tbody>
-            <tr th:each="review : ${reviews}">
-                <td th:text="${review.product.name}">SP</td>
-                <td th:text="${review.user.username}">user</td>
-                <td th:text="${review.rating}">5</td>
-                <td th:text="${review.comment}">Comment</td>
-                <td th:text="${review.approved} ? 'Đã duyệt' : 'Chờ duyệt'">Chờ</td>
-                <td class="actions">
-                    <form th:if="${!review.approved}" th:action="@{/admin/reviews/{id}/approve(id=${review.id})}" method="post"><button class="btn secondary small" type="submit">Duyệt</button></form>
-                    <form th:action="@{/admin/reviews/{id}/delete(id=${review.id})}" method="post"><button class="btn danger small" type="submit">Xóa</button></form>
-                </td>
-            </tr>
-            </tbody>
-        </table>
+        <div class="section-title">
+            <div>
+                <p class="section-kicker">Quản lý</p>
+                <h1>Đánh giá</h1>
+            </div>
+        </div>
+        <div class="admin-tools">
+            <input class="form-control" data-table-search="#reviewsTable" placeholder="Tìm sản phẩm, khách, bình luận">
+        </div>
+        <div class="table-wrap">
+            <table class="table" id="reviewsTable">
+                <thead><tr><th>Sản phẩm</th><th>Khách</th><th>Sao</th><th>Bình luận</th><th>Trạng thái</th><th></th></tr></thead>
+                <tbody>
+                <tr th:each="review : ${reviews}">
+                    <td th:text="${review.product.name}">SP</td>
+                    <td th:text="${review.user.username}">user</td>
+                    <td><span class="badge status-success" th:text="${review.rating} + ' sao'">5 sao</span></td>
+                    <td th:text="${review.comment}">Comment</td>
+                    <td>
+                        <span th:class="${review.approved ? 'badge status-success' : 'badge status-pending'}"
+                              th:text="${@shopLabels.reviewLabel(review.approved)}">Chờ duyệt</span>
+                    </td>
+                    <td>
+                        <div class="inline-form">
+                            <form th:if="${!review.approved}" th:action="@{/admin/reviews/{id}/approve(id=${review.id})}" method="post">
+                                <button class="btn secondary small" type="submit">Duyệt</button>
+                            </form>
+                            <form th:action="@{/admin/reviews/{id}/delete(id=${review.id})}" method="post">
+                                <button class="btn danger small" type="submit">Xóa</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
     </section>
 </main>
 </body>

@@ -12,35 +12,54 @@
 <main class="container admin-shell">
     <div th:replace="~{shop/fragments :: adminNav}"></div>
     <section>
-        <div class="section-title"><h1>Đơn hàng</h1></div>
-        <form class="panel actions" th:action="@{/admin/orders}" method="get">
-            <select name="status">
-                <option value="">Tất cả trạng thái</option>
-                <option th:each="s : ${statuses}" th:value="${s}" th:selected="${s == status}" th:text="${s}"></option>
-            </select>
+        <div class="section-title">
+            <div>
+                <p class="section-kicker">Quản lý</p>
+                <h1>Đơn hàng</h1>
+            </div>
+        </div>
+        <form class="panel inline-form" th:action="@{/admin/orders}" method="get" data-auto-submit="true">
+            <div class="clearable-select" data-submit-on-clear="true">
+                <select name="status" data-enum-select>
+                    <option value="">Chọn trạng thái</option>
+                    <option th:each="s : ${statuses}" th:value="${s}" th:selected="${s == status}" th:text="${@shopLabels.label(s)}"></option>
+                </select>
+                <button type="button" class="clear-select-btn" aria-label="Xóa lựa chọn">×</button>
+            </div>
             <button class="btn secondary" type="submit">Lọc</button>
         </form>
-        <table class="table" style="margin-top:16px">
-            <thead><tr><th>Mã</th><th>Khách</th><th>Ngày</th><th>Tổng</th><th>Thanh toán</th><th>Trạng thái</th><th>Cập nhật</th></tr></thead>
-            <tbody>
-            <tr th:each="order : ${orders}">
-                <td><a th:href="@{/orders/{id}(id=${order.id})}" th:text="${order.orderCode}">DH</a></td>
-                <td th:text="${order.user.fullName}">Khách</td>
-                <td th:text="${#temporals.format(order.createdAt, 'dd/MM/yyyy HH:mm')}">Ngày</td>
-                <td th:text="${#numbers.formatDecimal(order.totalAmount,0,'COMMA',0,'POINT')} + ' đ'">0 đ</td>
-                <td><span class="badge warn" th:text="|${order.paymentMethod} / ${order.paymentStatus}|">COD</span></td>
-                <td><span class="badge" th:text="${order.status}">PENDING</span></td>
-                <td>
-                    <form th:action="@{/admin/orders/{id}/status(id=${order.id})}" method="post" class="actions">
-                        <select name="status">
-                            <option th:each="s : ${statuses}" th:value="${s}" th:text="${s}"></option>
-                        </select>
-                        <button class="btn secondary small" type="submit">Lưu</button>
-                    </form>
-                </td>
-            </tr>
-            </tbody>
-        </table>
+        <div class="admin-tools mt-16">
+            <input class="form-control" data-table-search="#ordersTable" placeholder="Tìm mã đơn, khách, trạng thái">
+        </div>
+        <div class="table-wrap">
+            <table class="table" id="ordersTable">
+                <thead><tr><th>Mã</th><th>Khách</th><th>Ngày</th><th>Tổng</th><th>Thanh toán</th><th>Trạng thái</th><th>Cập nhật</th></tr></thead>
+                <tbody>
+                <tr th:each="order : ${orders}">
+                    <td><a th:href="@{/orders/{id}(id=${order.id})}" th:text="${order.orderCode}">DH</a></td>
+                    <td th:text="${order.user.fullName}">Khách</td>
+                    <td th:text="${#temporals.format(order.createdAt, 'dd/MM/yyyy HH:mm')}">Ngày</td>
+                    <td th:text="${#numbers.formatDecimal(order.totalAmount,0,'COMMA',0,'POINT')} + ' đ'">0 đ</td>
+                    <td>
+                        <span class="badge warn" th:text="|${@shopLabels.label(order.paymentMethod)} / ${@shopLabels.label(order.paymentStatus)}|">Thanh toán</span>
+                    </td>
+                    <td><span th:class="${'badge ' + @shopLabels.orderBadgeClass(order.status)}" th:text="${@shopLabels.label(order.status)}">Chờ xác nhận</span></td>
+                    <td>
+                        <form th:action="@{/admin/orders/{id}/status(id=${order.id})}" method="post" class="inline-form">
+                            <div class="clearable-select">
+                                <select name="status" required data-enum-select>
+                                    <option value="">Chọn trạng thái</option>
+                                    <option th:each="s : ${statuses}" th:value="${s}" th:selected="${s == order.status}" th:text="${@shopLabels.label(s)}"></option>
+                                </select>
+                                <button type="button" class="clear-select-btn" aria-label="Xóa lựa chọn">×</button>
+                            </div>
+                            <button class="btn secondary small" type="submit">Lưu</button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
     </section>
 </main>
 </body>

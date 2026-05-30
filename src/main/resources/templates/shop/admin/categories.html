@@ -12,36 +12,48 @@
 <main class="container admin-shell">
     <div th:replace="~{shop/fragments :: adminNav}"></div>
     <section>
-        <div class="section-title"><h1>Danh mục</h1></div>
+        <div class="section-title">
+            <div>
+                <p class="section-kicker">Quản lý</p>
+                <h1>Danh mục</h1>
+            </div>
+        </div>
         <form class="panel" th:action="@{/admin/categories}" method="post">
             <div class="form-row">
                 <div><label>Tên</label><input class="form-control" name="name" required></div>
                 <div><label>Mô tả</label><input class="form-control" name="description"></div>
             </div>
-            <label><input type="checkbox" name="active" checked> Active</label>
-            <button class="btn" type="submit">Thêm danh mục</button>
+            <div class="actions">
+                <label class="check-row"><input type="checkbox" name="active" checked> Đang hoạt động</label>
+                <button class="btn" type="submit">Thêm danh mục</button>
+            </div>
         </form>
-        <table class="table" style="margin-top:16px">
-            <thead><tr><th>Tên</th><th>Mô tả</th><th>Active</th><th></th></tr></thead>
-            <tbody>
-            <tr th:each="category : ${categories}">
-                <td colspan="4">
-                    <form th:action="@{/admin/categories}" method="post" class="form-row">
-                        <input type="hidden" name="id" th:value="${category.id}">
-                        <input class="form-control" name="name" th:value="${category.name}">
-                        <input class="form-control" name="description" th:value="${category.description}">
-                        <label><input type="checkbox" name="active" th:checked="${category.active}"> Active</label>
-                        <span class="actions">
-                            <button class="btn secondary small" type="submit">Lưu</button>
-                        </span>
-                    </form>
-                    <form th:action="@{/admin/categories/{id}/delete(id=${category.id})}" method="post" style="margin-top:8px">
-                        <button class="btn danger small" type="submit">Xóa</button>
-                    </form>
-                </td>
-            </tr>
-            </tbody>
-        </table>
+        <div class="admin-tools mt-16">
+            <input class="form-control" data-table-search="#categoriesTable" placeholder="Tìm danh mục">
+        </div>
+        <div class="table-wrap">
+            <table class="table" id="categoriesTable">
+                <thead><tr><th>Tên</th><th>Mô tả</th><th>Trạng thái</th><th>Thao tác</th></tr></thead>
+                <tbody>
+                <tr th:each="category : ${categories}">
+                    <td colspan="4">
+                        <form th:action="@{/admin/categories}" method="post" class="form-row">
+                            <input type="hidden" name="id" th:value="${category.id}">
+                            <input class="form-control" name="name" th:value="${category.name}">
+                            <input class="form-control" name="description" th:value="${category.description}">
+                            <label class="check-row"><input type="checkbox" name="active" th:checked="${category.active}"> Đang hoạt động</label>
+                            <span class="actions">
+                                <button class="btn secondary small" type="submit">Lưu</button>
+                            </span>
+                        </form>
+                        <form th:action="@{/admin/categories/{id}/delete(id=${category.id})}" method="post" class="actions">
+                            <button class="btn danger small" type="submit">Xóa</button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
     </section>
 </main>
 </body>

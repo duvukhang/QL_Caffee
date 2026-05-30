@@ -8,24 +8,60 @@
 </head>
 <body>
 <div th:replace="~{shop/fragments :: topbar}"></div>
+<div th:replace="~{shop/fragments :: flash}"></div>
 <main class="container">
-    <div class="section-title"><h1>Mã khuyến mãi của tôi</h1></div>
+    <div class="section-title">
+        <div>
+            <p class="section-kicker">Ưu đãi</p>
+            <h1>Mã khuyến mãi của tôi</h1>
+        </div>
+    </div>
     <section>
-        <h2>Được gán riêng</h2>
+        <div class="section-title"><h2>Được gán riêng</h2></div>
         <div class="grid grid-3">
-            <article class="card card-body" th:each="assigned : ${assignedCoupons}">
-                <h3 th:text="${assigned.coupon.code}">VIP20</h3>
-                <p class="muted" th:text="${assigned.used} ? 'Đã dùng' : 'Chưa dùng'">Chưa dùng</p>
+            <article class="card coupon-card" th:each="assigned : ${assignedCoupons}">
+                <div class="coupon-code">
+                    <strong th:text="${assigned.coupon.code}">VIP20</strong>
+                    <button class="btn secondary small" type="button" th:attr="data-copy-code=${assigned.coupon.code}">Copy</button>
+                </div>
+                <div class="product-meta">
+                    <span th:class="${assigned.used ? 'badge status-muted' : 'badge status-success'}"
+                          th:text="${assigned.used ? 'Đã dùng' : 'Còn dùng'}">Còn dùng</span>
+                    <span class="badge" th:text="${@shopLabels.label(assigned.coupon.discountType)}">Giảm theo phần trăm</span>
+                </div>
+                <div class="coupon-facts">
+                    <span>Giá trị: <strong th:text="${assigned.coupon.discountType.name() == 'PERCENT' ? #numbers.formatDecimal(assigned.coupon.discountValue,0,'COMMA',0,'POINT') + '%' : #numbers.formatDecimal(assigned.coupon.discountValue,0,'COMMA',0,'POINT') + ' đ'}">10%</strong></span>
+                    <span>Đơn tối thiểu: <strong th:text="${#numbers.formatDecimal(assigned.coupon.minOrderAmount,0,'COMMA',0,'POINT')} + ' đ'">0 đ</strong></span>
+                    <span>Hết hạn: <strong th:text="${#temporals.format(assigned.coupon.endDate, 'dd/MM/yyyy HH:mm')}">31/12</strong></span>
+                </div>
             </article>
+        </div>
+        <div class="panel" th:if="${assignedCoupons.isEmpty()}">
+            <p class="muted">Bạn chưa có mã riêng.</p>
         </div>
     </section>
     <section>
-        <h2>Mã public</h2>
+        <div class="section-title"><h2>Mã công khai</h2></div>
         <div class="grid grid-3">
-            <article class="card card-body" th:each="coupon : ${publicCoupons}">
-                <h3 th:text="${coupon.code}">SALE10</h3>
-                <p class="muted">Đơn tối thiểu <span th:text="${#numbers.formatDecimal(coupon.minOrderAmount,0,'COMMA',0,'POINT')}"></span> đ</p>
+            <article class="card coupon-card" th:each="coupon : ${publicCoupons}">
+                <div class="coupon-code">
+                    <strong th:text="${coupon.code}">SALE10</strong>
+                    <button class="btn secondary small" type="button" th:attr="data-copy-code=${coupon.code}">Copy</button>
+                </div>
+                <div class="product-meta">
+                    <span th:class="${coupon.active ? 'badge status-success' : 'badge status-muted'}"
+                          th:text="${coupon.active ? 'Còn dùng' : 'Ngừng hoạt động'}">Còn dùng</span>
+                    <span class="badge" th:text="${@shopLabels.label(coupon.discountType)}">Giảm theo phần trăm</span>
+                </div>
+                <div class="coupon-facts">
+                    <span>Giá trị: <strong th:text="${coupon.discountType.name() == 'PERCENT' ? #numbers.formatDecimal(coupon.discountValue,0,'COMMA',0,'POINT') + '%' : #numbers.formatDecimal(coupon.discountValue,0,'COMMA',0,'POINT') + ' đ'}">10%</strong></span>
+                    <span>Đơn tối thiểu: <strong th:text="${#numbers.formatDecimal(coupon.minOrderAmount,0,'COMMA',0,'POINT')} + ' đ'">0 đ</strong></span>
+                    <span>Hết hạn: <strong th:text="${#temporals.format(coupon.endDate, 'dd/MM/yyyy HH:mm')}">31/12</strong></span>
+                </div>
             </article>
+        </div>
+        <div class="panel" th:if="${publicCoupons.isEmpty()}">
+            <p class="muted">Hiện chưa có mã công khai.</p>
         </div>
     </section>
 </main>

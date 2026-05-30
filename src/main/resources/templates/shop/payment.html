@@ -11,17 +11,21 @@
 <div th:replace="~{shop/fragments :: flash}"></div>
 <main class="container">
     <div class="section-title">
-        <h1>Thanh toán online</h1>
-        <span class="badge warn" th:text="${order.paymentStatus}">PENDING</span>
+        <div>
+            <p class="section-kicker">Thanh toán</p>
+            <h1>Thanh toán online</h1>
+        </div>
+        <span th:class="${'badge ' + @shopLabels.orderBadgeClass(order.paymentStatus)}"
+              th:text="${@shopLabels.label(order.paymentStatus)}">Chờ xác nhận</span>
     </div>
-    <div class="filters">
+    <div class="two-column">
         <section class="panel">
-            <h2 th:text="${order.paymentMethod == T(com.example.Admin.Shop.Model.PaymentMethod).CARD} ? 'Thanh toán thẻ mô phỏng' : 'Ví điện tử mô phỏng'">Online</h2>
+            <h2 th:text="${order.paymentMethod == T(com.example.Admin.Shop.Model.PaymentMethod).CARD ? 'Thanh toán thẻ mô phỏng' : 'Ví điện tử mô phỏng'}">Thanh toán online</h2>
             <p>Mã đơn: <strong th:text="${order.orderCode}">DH</strong></p>
             <p>Mã giao dịch: <strong th:text="${order.paymentReference}">PAY</strong></p>
             <p>Số tiền: <strong class="price" th:text="${#numbers.formatDecimal(order.totalAmount,0,'COMMA',0,'POINT')} + ' đ'">0 đ</strong></p>
-            <div class="panel" style="text-align:center; max-width:280px; margin:18px 0">
-                <div style="width:180px;height:180px;margin:0 auto;background:repeating-linear-gradient(45deg,#111 0 8px,#fff 8px 16px);border:12px solid #fff;box-shadow:0 0 0 1px #ddd"></div>
+            <div class="qr-demo">
+                <div class="qr-pattern"></div>
                 <p class="muted">QR demo, không kết nối cổng thật.</p>
             </div>
             <form th:action="@{/payments/{id}/confirm(id=${order.id})}" method="post" class="actions">
@@ -31,12 +35,16 @@
                 <button class="btn danger" type="submit">Mô phỏng thất bại và hủy đơn</button>
             </form>
         </section>
-        <aside class="panel">
+        <aside class="panel summary">
             <h2>Thông tin đơn</h2>
             <p><strong>Người nhận:</strong> <span th:text="${order.receiverName}"></span></p>
             <p><strong>Số điện thoại:</strong> <span th:text="${order.receiverPhone}"></span></p>
             <p><strong>Địa chỉ:</strong> <span th:text="${order.shippingAddress}"></span></p>
-            <p><strong>Trạng thái đơn:</strong> <span th:text="${order.status}"></span></p>
+            <p>
+                <strong>Trạng thái đơn:</strong>
+                <span th:class="${'badge ' + @shopLabels.orderBadgeClass(order.status)}"
+                      th:text="${@shopLabels.label(order.status)}"></span>
+            </p>
             <p class="muted">Sau khi xác nhận thành công, admin mới có thể chuyển đơn sang trạng thái xử lý.</p>
         </aside>
     </div>
