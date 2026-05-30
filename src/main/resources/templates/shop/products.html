@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sản phẩm - QL Caffee</title>
+    <link rel="stylesheet" th:href="@{/css/shop.css}">
+</head>
+<body>
+<div th:replace="~{shop/fragments :: topbar}"></div>
+<div th:replace="~{shop/fragments :: flash}"></div>
+<main class="container">
+    <div class="section-title"><h1>Sản phẩm</h1></div>
+    <div class="filters">
+        <form class="panel" th:action="@{/products}" method="get">
+            <label>Tìm kiếm</label>
+            <input class="form-control" name="q" th:value="${q}">
+            <div style="margin-top:12px">
+                <label>Danh mục</label>
+                <select name="categoryId">
+                    <option value="">Tất cả</option>
+                    <option th:each="category : ${categories}" th:value="${category.id}" th:selected="${category.id == categoryId}" th:text="${category.name}"></option>
+                </select>
+            </div>
+            <div style="margin-top:12px">
+                <label>Thương hiệu</label>
+                <select name="brandId">
+                    <option value="">Tất cả</option>
+                    <option th:each="brand : ${brands}" th:value="${brand.id}" th:selected="${brand.id == brandId}" th:text="${brand.name}"></option>
+                </select>
+            </div>
+            <div class="form-row" style="margin-top:12px">
+                <div><label>Giá từ</label><input class="form-control" type="number" name="minPrice" min="0" th:value="${minPrice}"></div>
+                <div><label>Đến</label><input class="form-control" type="number" name="maxPrice" min="0" th:value="${maxPrice}"></div>
+            </div>
+            <label>Sắp xếp</label>
+            <select name="sort">
+                <option value="newest" th:selected="${sort == 'newest'}">Mới nhất</option>
+                <option value="popular" th:selected="${sort == 'popular'}">Phổ biến</option>
+                <option value="priceAsc" th:selected="${sort == 'priceAsc'}">Giá tăng dần</option>
+                <option value="priceDesc" th:selected="${sort == 'priceDesc'}">Giá giảm dần</option>
+            </select>
+            <div class="actions"><button class="btn" type="submit">Lọc</button></div>
+        </form>
+
+        <section>
+            <div class="grid grid-3">
+                <article class="card" th:each="product : ${products.content}">
+                    <img class="product-img" th:src="${product.mainImagePath}" th:alt="${product.name}">
+                    <div class="card-body">
+                        <span class="badge" th:if="${product.featured}">Nổi bật</span>
+                        <span class="badge danger" th:if="${product.quantity < 5}">Sắp hết</span>
+                        <h3 class="product-name" th:text="${product.name}">Tên sản phẩm</h3>
+                        <p class="muted" th:text="${product.category.name}">Danh mục</p>
+                        <div>
+                            <span class="price" th:text="${#numbers.formatDecimal(product.effectivePrice,0,'COMMA',0,'POINT')} + ' đ'">0 đ</span>
+                            <span class="old-price" th:if="${product.onSale}" th:text="${#numbers.formatDecimal(product.price,0,'COMMA',0,'POINT')} + ' đ'">0 đ</span>
+                        </div>
+                        <div class="actions">
+                            <a class="btn secondary small" th:href="@{/products/{id}(id=${product.id})}">Chi tiết</a>
+                            <button class="btn secondary small" type="button" th:attr="data-name=${product.name},data-price=${#numbers.formatDecimal(product.effectivePrice,0,'COMMA',0,'POINT')},data-img=${product.mainImagePath},data-desc=${product.description}" onclick="quickView(this)">Xem nhanh</button>
+                            <form th:action="@{/cart/add}" method="post"><input type="hidden" name="productId" th:value="${product.id}"><button class="btn small" type="submit">Thêm</button></form>
+                        </div>
+                    </div>
+                </article>
+            </div>
+            <div class="actions" th:if="${products.totalPages > 1}">
+                <a class="btn secondary small" th:if="${products.hasPrevious()}" th:href="@{/products(page=${products.number - 1},q=${q},categoryId=${categoryId},brandId=${brandId},minPrice=${minPrice},maxPrice=${maxPrice},sort=${sort})}">Trước</a>
+                <span class="muted" th:text="|${products.number + 1}/${products.totalPages}|">1/1</span>
+                <a class="btn secondary small" th:if="${products.hasNext()}" th:href="@{/products(page=${products.number + 1},q=${q},categoryId=${categoryId},brandId=${brandId},minPrice=${minPrice},maxPrice=${maxPrice},sort=${sort})}">Sau</a>
+            </div>
+        </section>
+    </div>
+</main>
+<dialog id="quickViewDialog">
+    <div class="modal-content">
+        <img id="quickImg" class="product-img" src="/img/no-image.png" alt="">
+        <h2 id="quickName"></h2>
+        <p class="price"><span id="quickPrice"></span> đ</p>
+        <p class="muted" id="quickDesc"></p>
+        <button class="btn secondary" onclick="document.getElementById('quickViewDialog').close()">Đóng</button>
+    </div>
+</dialog>
+<script>
+function quickView(button) {
+  document.getElementById('quickImg').src = button.dataset.img;
+  document.getElementById('quickName').textContent = button.dataset.name;
+  document.getElementById('quickPrice').textContent = button.dataset.price;
+  document.getElementById('quickDesc').textContent = button.dataset.desc || '';
+  document.getElementById('quickViewDialog').showModal();
+}
+</script>
+</body>
+</html>

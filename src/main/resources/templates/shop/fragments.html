@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<nav th:fragment="topbar" class="topbar">
+    <div class="topbar-inner">
+        <a class="brand" th:href="@{/}">QL Caffee</a>
+        <div class="nav">
+            <a th:href="@{/products}">Sản phẩm</a>
+            <a th:href="@{/cart}">Giỏ hàng</a>
+            <a th:href="@{/orders}">Đơn hàng</a>
+            <a th:href="@{/my-coupons}">Mã của tôi</a>
+            <a th:if="${currentShopUser != null and currentShopUser.adminLike}" th:href="@{/admin/dashboard}">Admin</a>
+            <a th:if="${currentShopUser == null}" th:href="@{/login}">Đăng nhập</a>
+            <a th:if="${currentShopUser == null}" th:href="@{/register}">Đăng ký</a>
+            <form th:if="${currentShopUser != null}" th:action="@{/logout}" method="post">
+                <button type="submit">Đăng xuất</button>
+            </form>
+        </div>
+    </div>
+</nav>
+
+<div th:fragment="flash" class="toast">
+    <div th:if="${success}" th:text="${success}"></div>
+    <div th:if="${param.logout}" class="success">Đã đăng xuất</div>
+    <div th:if="${param.registered}" class="success">Đăng ký thành công</div>
+    <div th:if="${error}" class="error" th:text="${error}"></div>
+    <div th:if="${param.error}" class="error">Sai tài khoản hoặc mật khẩu</div>
+    <div th:if="${param.denied}" class="error">Bạn không đủ quyền truy cập</div>
+</div>
+
+<aside th:fragment="adminNav" class="sidebar">
+    <a th:href="@{/admin/dashboard}">Dashboard</a>
+    <a th:href="@{/admin/categories}">Danh mục</a>
+    <a th:href="@{/admin/products}">Sản phẩm</a>
+    <a th:href="@{/admin/inventory}">Tồn kho</a>
+    <a th:href="@{/admin/coupons}">Coupon</a>
+    <a th:href="@{/admin/orders}">Đơn hàng</a>
+    <a th:href="@{/admin/users}">Người dùng</a>
+    <a th:href="@{/admin/reviews}">Đánh giá</a>
+</aside>
+</body>
+</html>

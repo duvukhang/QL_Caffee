@@ -1,45 +1,65 @@
 # QL_Caffee
 
-## Cau truc folder
+Spring Boot + Thymeleaf + SQL Server demo website bán hàng/cửa hàng.
 
-```text
-QL_Caffee/
-|-- .mvn/                         # Cau hinh Maven wrapper
-|-- Logs/                         # File log he thong
-|-- src/
-|   |-- main/
-|   |   |-- java/com/example/Admin/
-|   |   |   |-- Config/            # Cau hinh ung dung
-|   |   |   |-- Controller/        # Controller cho Admin, Cashier, Customer, Manager, Public
-|   |   |   |-- DTOS/              # Lop request/response/form DTO
-|   |   |   |-- MidWare/           # Filter, JWT, xu ly loi
-|   |   |   |-- Models/            # Entity/model cua he thong
-|   |   |   |-- Repositories/      # Tang truy xuat du lieu
-|   |   |   |-- Security/          # Cau hinh bao mat va JWT
-|   |   |   |-- Service/           # Xu ly nghiep vu
-|   |   |   |-- Util/              # Ham tien ich
-|   |   |   `-- DemoApplication.java
-|   |   `-- resources/
-|   |       |-- static/
-|   |       |   |-- css/            # File CSS
-|   |       |   |-- img/            # Hinh anh tinh
-|   |       |   |-- js/             # File JavaScript
-|   |       |   `-- web/            # Trang HTML tinh cho admin/customer/manager
-|   |       |-- templates/         # Giao dien Thymeleaf
-|   |       |-- application.properties
-|   |       `-- logback-spring.xml
-|   `-- test/                      # Unit/integration test
-|-- target/                        # Thu muc build sinh ra boi Maven
-|-- uploads/                       # Anh/file nguoi dung upload
-|-- pom.xml                        # Cau hinh dependency va build Maven
-|-- mvnw, mvnw.cmd                 # Maven wrapper
-`-- README.md
+## Yêu cầu
+
+- Java 21
+- SQL Server chạy ở `127.0.0.1:1433`
+- Maven wrapper có sẵn trong repo
+
+## Tạo database
+
+Chạy script:
+
+```sql
+create-database.sql
 ```
 
-## Mo ta nhanh
+Script tạo database `StoreManagement1` và các schema phụ còn cần cho một số entity cũ trong repo.
 
-- `Controller`: nhan request tu client va dieu huong xu ly.
-- `Service`: chua logic nghiep vu cua ung dung.
-- `Repositories`: lam viec voi database thong qua Spring Data.
-- `Models`: dinh nghia cac bang/entity chinh.
-- `templates` va `static`: chua giao dien, CSS, JavaScript va hinh anh.
+## Cấu hình
+
+`src/main/resources/application.properties` mặc định dùng:
+
+```properties
+spring.datasource.url=jdbc:sqlserver://127.0.0.1:1433;databaseName=StoreManagement1;encrypt=true;trustServerCertificate=true;
+spring.datasource.username=${DB_USERNAME:sa}
+spring.datasource.password=${DB_PASSWORD:123123}
+spring.jpa.hibernate.ddl-auto=update
+```
+
+Có thể override bằng biến môi trường:
+
+```powershell
+$env:DB_USERNAME="sa"
+$env:DB_PASSWORD="123123"
+```
+
+## Chạy app
+
+```powershell
+.\mvnw.cmd clean package
+.\mvnw.cmd spring-boot:run
+```
+
+Mở: `http://localhost:8082`
+
+## Tài khoản mẫu
+
+- Admin cao nhất: `admin111 / 123123`
+- Khách hàng: `customer1 / 123123`
+- Khách hàng: `customer2 / 123123`
+
+## Chức năng đã dựng cho demo
+
+- Khách hàng: đăng ký, đăng nhập, xem sản phẩm, tìm/lọc/sắp xếp, xem chi tiết, quick view, giỏ hàng, áp coupon, checkout, lịch sử đơn, hủy đơn chờ xác nhận, mã khuyến mãi của tôi, gửi đánh giá sau khi mua.
+- Admin: dashboard, quản lý danh mục, sản phẩm, tồn kho, coupon, gán coupon riêng cho khách, đơn hàng, người dùng, duyệt/xóa đánh giá.
+- Database: dùng `StoreManagement1`, Hibernate tự sinh/cập nhật bảng `shop_*`, seed dữ liệu mẫu bằng `DataInitializer`.
+- Coupon mẫu: `SALE10`, `GIAM50K`, `VIP20`, `EXPIRED10`.
+
+## Ghi chú kỹ thuật
+
+- Phần bán hàng mới dùng package `com.example.Admin.Shop.*` và bảng prefix `shop_` để không va chạm với entity cũ.
+- JWT filter vẫn được giữ cho API cũ, đồng thời web MVC dùng Spring Security form-login/session.
+- Entity cũ vẫn còn trong repo để tránh phá các controller cũ, nhưng flow demo chính nằm ở các route `/`, `/products`, `/cart`, `/checkout`, `/orders`, `/my-coupons`, `/admin/**`.

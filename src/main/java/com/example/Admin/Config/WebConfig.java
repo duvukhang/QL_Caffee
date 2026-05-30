@@ -5,7 +5,7 @@ import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import java.io.File;
+import java.nio.file.Path;
 
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
@@ -13,7 +13,7 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         // Lấy đường dẫn tuyệt đối đến thư mục uploads
-        String uploadPath = "file:///" + System.getProperty("user.dir") + File.separator + "uploads" + File.separator;
+        String uploadPath = Path.of(System.getProperty("user.dir"), "uploads").toUri().toString();
 
         // Map URL /uploads/** vào thư mục vật lý này
         registry.addResourceHandler("/uploads/**")
@@ -22,7 +22,6 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addViewControllers(ViewControllerRegistry registry) {
-        registry.addViewController("/").setViewName("index");
         registry.addViewController("/index.html").setViewName("index");
         registry.addViewController("/login.html").setViewName("login");
         registry.addViewController("/profile.html").setViewName("profile");

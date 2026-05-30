@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coupon</title>
+    <link rel="stylesheet" th:href="@{/css/shop.css}">
+</head>
+<body>
+<div th:replace="~{shop/fragments :: topbar}"></div>
+<div th:replace="~{shop/fragments :: flash}"></div>
+<main class="container admin-shell">
+    <div th:replace="~{shop/fragments :: adminNav}"></div>
+    <section>
+        <div class="section-title"><h1>Coupon</h1></div>
+        <form class="panel" th:action="@{/admin/coupons}" method="post">
+            <div class="form-row">
+                <div><label>Code</label><input class="form-control" name="code" required></div>
+                <div><label>Loại</label><select name="discountType"><option th:each="type : ${discountTypes}" th:value="${type}" th:text="${type}"></option></select></div>
+            </div>
+            <div class="form-row">
+                <div><label>Giá trị</label><input class="form-control" type="number" name="discountValue" min="1" required></div>
+                <div><label>Đơn tối thiểu</label><input class="form-control" type="number" name="minOrderAmount" min="0" value="0" required></div>
+            </div>
+            <div class="form-row">
+                <div><label>Giảm tối đa</label><input class="form-control" type="number" name="maxDiscountAmount" min="0"></div>
+                <div><label>Lượt dùng</label><input class="form-control" type="number" name="usageLimit" min="1"></div>
+            </div>
+            <div class="form-row">
+                <div><label>Bắt đầu</label><input class="form-control" type="datetime-local" name="startDate" required></div>
+                <div><label>Kết thúc</label><input class="form-control" type="datetime-local" name="endDate" required></div>
+            </div>
+            <div class="actions">
+                <label><input type="checkbox" name="active" checked> Active</label>
+                <label><input type="checkbox" name="publicCoupon" checked> Public</label>
+                <button class="btn" type="submit">Tạo coupon</button>
+            </div>
+        </form>
+        <table class="table" style="margin-top:16px">
+            <thead><tr><th>Code</th><th>Giảm</th><th>Điều kiện</th><th>Lượt</th><th>Trạng thái</th><th>Gán khách</th></tr></thead>
+            <tbody>
+            <tr th:each="coupon : ${coupons}">
+                <td><strong th:text="${coupon.code}">SALE10</strong><p class="muted" th:text="${coupon.publicCoupon} ? 'Public' : 'Private'"></p></td>
+                <td th:text="|${coupon.discountType} ${coupon.discountValue}|">PERCENT 10</td>
+                <td th:text="${#numbers.formatDecimal(coupon.minOrderAmount,0,'COMMA',0,'POINT')} + ' đ'">0 đ</td>
+                <td th:text="|${coupon.usedCount}/${coupon.usageLimit == null ? 'khong gioi han' : coupon.usageLimit}|">0</td>
+                <td>
+                    <form th:action="@{/admin/coupons/{id}/toggle(id=${coupon.id})}" method="post">
+                        <button class="btn secondary small" type="submit" th:text="${coupon.active} ? 'Active' : 'Inactive'">Active</button>
+                    </form>
+                </td>
+                <td>
+                    <form th:action="@{/admin/coupons/{id}/assign(id=${coupon.id})}" method="post" class="actions">
+                        <select name="userId"><option th:each="user : ${users}" th:value="${user.id}" th:text="${user.username}"></option></select>
+                        <button class="btn small" type="submit">Gán</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+</main>
+</body>
+</html>

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${product.name} + ' - QL Caffee'">Chi tiết</title>
+    <link rel="stylesheet" th:href="@{/css/shop.css}">
+</head>
+<body>
+<div th:replace="~{shop/fragments :: topbar}"></div>
+<div th:replace="~{shop/fragments :: flash}"></div>
+<main class="container">
+    <section class="detail">
+        <div class="thumbs">
+            <img th:each="image : ${product.images}" th:src="${image.imagePath}" th:alt="${product.name}">
+            <img th:if="${product.images.isEmpty()}" th:src="@{/img/no-image.png}" alt="No image">
+        </div>
+        <div class="panel">
+            <span class="badge" th:text="${product.category.name}">Danh mục</span>
+            <h1 th:text="${product.name}">Tên sản phẩm</h1>
+            <p>
+                <span class="price" th:text="${#numbers.formatDecimal(product.effectivePrice,0,'COMMA',0,'POINT')} + ' đ'">0 đ</span>
+                <span class="old-price" th:if="${product.onSale}" th:text="${#numbers.formatDecimal(product.price,0,'COMMA',0,'POINT')} + ' đ'">0 đ</span>
+            </p>
+            <p class="muted" th:text="${product.description}">Mô tả</p>
+            <p><strong>Tồn kho:</strong> <span th:text="${product.quantity}">0</span></p>
+            <form th:action="@{/cart/add}" method="post" class="actions">
+                <input type="hidden" name="productId" th:value="${product.id}">
+                <input class="form-control" style="max-width:100px" type="number" name="quantity" value="1" min="1" th:max="${product.quantity}">
+                <button class="btn" type="submit" th:disabled="${product.quantity <= 0}">Thêm vào giỏ</button>
+            </form>
+        </div>
+    </section>
+
+    <section>
+        <div class="section-title"><h2>Đánh giá</h2></div>
+        <div class="panel" th:if="${currentShopUser != null}">
+            <form th:action="@{/products/{id}/reviews(id=${product.id})}" method="post">
+                <div class="form-row">
+                    <div>
+                        <label>Số sao</label>
+                        <select name="rating">
+                            <option value="5">5 sao</option>
+                            <option value="4">4 sao</option>
+                            <option value="3">3 sao</option>
+                            <option value="2">2 sao</option>
+                            <option value="1">1 sao</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Bình luận</label>
+                        <input class="form-control" name="comment" maxlength="1000">
+                    </div>
+                </div>
+                <button class="btn secondary" type="submit">Gửi đánh giá</button>
+            </form>
+        </div>
+        <div class="grid grid-3" style="margin-top:14px">
+            <article class="card card-body" th:each="review : ${reviews}">
+                <strong th:text="${review.rating} + ' sao'">5 sao</strong>
+                <p th:text="${review.comment}">Bình luận</p>
+                <p class="muted" th:text="${review.user.fullName}">Khách hàng</p>
+            </article>
+        </div>
+    </section>
+</main>
+</body>
+</html>

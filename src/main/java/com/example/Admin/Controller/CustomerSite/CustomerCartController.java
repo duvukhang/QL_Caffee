@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
-@RequestMapping("/cart")
+@RequestMapping("/legacy-cart")
 public class CustomerCartController {
 
     private final CartSessionService cartSessionService;

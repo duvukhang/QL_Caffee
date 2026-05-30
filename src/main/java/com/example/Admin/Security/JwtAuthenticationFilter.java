@@ -11,8 +11,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
-import java.util.Collections;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
@@ -42,9 +45,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         role = claims.get("http://schemas.microsoft.com/ws/2008/06/identity/claims/role", String.class);
                     }
 
-                    if (role != null) {
+                    if (role != null && !role.isBlank()) {
                         // Tạo danh sách quyền (Đảm bảo chuỗi trùng khớp chính xác chữ với cấu trúc DB cũ: Admin, Manager, Cashier)
-                        List<SimpleGrantedAuthority> authorities = Collections.singletonList(new SimpleGrantedAuthority(role));
+                        List<SimpleGrantedAuthority> authorities = buildAuthorities(role);
                         
                         UsernamePasswordAuthenticationToken authentication = 
                                 new UsernamePasswordAuthenticationToken(userId, null, authorities);
@@ -59,5 +62,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    private List<SimpleGrantedAuthority> buildAuthorities(String role) {
+        String trimmedRole = role.trim();
+        String roleName = trimmedRole.startsWith("ROLE_") ? trimmedRole.substring(5) : trimmedRole;
+
+        Set<String> authorityNames = new LinkedHashSet<>();
+        authorityNames.add(trimmedRole);
+        authorityNames.add("ROLE_" + roleName.toUpperCase(Locale.ROOT));
+
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+        authorityNames.forEach(authority -> authorities.add(new SimpleGrantedAuthority(authority)));
+        return authorities;
     }
 }

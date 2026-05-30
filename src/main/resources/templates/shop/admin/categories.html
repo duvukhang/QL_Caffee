@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Danh mục</title>
+    <link rel="stylesheet" th:href="@{/css/shop.css}">
+</head>
+<body>
+<div th:replace="~{shop/fragments :: topbar}"></div>
+<div th:replace="~{shop/fragments :: flash}"></div>
+<main class="container admin-shell">
+    <div th:replace="~{shop/fragments :: adminNav}"></div>
+    <section>
+        <div class="section-title"><h1>Danh mục</h1></div>
+        <form class="panel" th:action="@{/admin/categories}" method="post">
+            <div class="form-row">
+                <div><label>Tên</label><input class="form-control" name="name" required></div>
+                <div><label>Mô tả</label><input class="form-control" name="description"></div>
+            </div>
+            <label><input type="checkbox" name="active" checked> Active</label>
+            <button class="btn" type="submit">Thêm danh mục</button>
+        </form>
+        <table class="table" style="margin-top:16px">
+            <thead><tr><th>Tên</th><th>Mô tả</th><th>Active</th><th></th></tr></thead>
+            <tbody>
+            <tr th:each="category : ${categories}">
+                <td colspan="4">
+                    <form th:action="@{/admin/categories}" method="post" class="form-row">
+                        <input type="hidden" name="id" th:value="${category.id}">
+                        <input class="form-control" name="name" th:value="${category.name}">
+                        <input class="form-control" name="description" th:value="${category.description}">
+                        <label><input type="checkbox" name="active" th:checked="${category.active}"> Active</label>
+                        <span class="actions">
+                            <button class="btn secondary small" type="submit">Lưu</button>
+                        </span>
+                    </form>
+                    <form th:action="@{/admin/categories/{id}/delete(id=${category.id})}" method="post" style="margin-top:8px">
+                        <button class="btn danger small" type="submit">Xóa</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+</main>
+</body>
+</html>

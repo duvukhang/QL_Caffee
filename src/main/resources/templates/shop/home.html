@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QL Caffee</title>
+    <link rel="stylesheet" th:href="@{/css/shop.css}">
+</head>
+<body>
+<div th:replace="~{shop/fragments :: topbar}"></div>
+<div th:replace="~{shop/fragments :: flash}"></div>
+<main class="container">
+    <section class="hero">
+        <div class="hero-main">
+            <h1>QL Caffee</h1>
+            <p>Cà phê, trà sữa, bánh ngọt và đồ ăn nhẹ được quản lý đầy đủ từ sản phẩm đến đơn hàng.</p>
+            <div class="actions">
+                <a class="btn" th:href="@{/products}">Xem sản phẩm</a>
+                <a class="btn secondary" th:href="@{/my-coupons}">Mã khuyến mãi</a>
+            </div>
+        </div>
+        <div class="hero-side">
+            <img th:src="@{/img/cf_sua.jpg}" alt="Cà phê sữa">
+            <img th:src="@{/img/ts_matcha.jpg}" alt="Trà sữa matcha">
+        </div>
+    </section>
+
+    <section>
+        <div class="section-title">
+            <h2>Danh mục</h2>
+            <a class="muted" th:href="@{/products}">Tất cả</a>
+        </div>
+        <div class="grid">
+            <a class="card card-body" th:each="category : ${categories}" th:href="@{/products(categoryId=${category.id})}">
+                <strong th:text="${category.name}">Cà phê</strong>
+                <p class="muted" th:text="${category.description}">Mô tả</p>
+            </a>
+        </div>
+    </section>
+
+    <section th:if="${!featuredProducts.isEmpty()}">
+        <div class="section-title"><h2>Nổi bật</h2></div>
+        <div class="grid">
+            <article class="card" th:each="product : ${featuredProducts}">
+                <img class="product-img" th:src="${product.mainImagePath}" th:alt="${product.name}">
+                <div class="card-body">
+                    <h3 class="product-name" th:text="${product.name}">Tên sản phẩm</h3>
+                    <div>
+                        <span class="price" th:text="${#numbers.formatDecimal(product.effectivePrice,0,'COMMA',0,'POINT')} + ' đ'">0 đ</span>
+                        <span class="old-price" th:if="${product.onSale}" th:text="${#numbers.formatDecimal(product.price,0,'COMMA',0,'POINT')} + ' đ'">0 đ</span>
+                    </div>
+                    <div class="actions">
+                        <a class="btn secondary small" th:href="@{/products/{id}(id=${product.id})}">Chi tiết</a>
+                        <form th:action="@{/cart/add}" method="post"><input type="hidden" name="productId" th:value="${product.id}"><button class="btn small" type="submit">Thêm</button></form>
+                    </div>
+                </div>
+            </article>
+        </div>
+    </section>
+
+    <section th:if="${!saleProducts.isEmpty()}">
+        <div class="section-title"><h2>Đang sale</h2></div>
+        <div class="grid">
+            <article class="card" th:each="product : ${saleProducts}">
+                <img class="product-img" th:src="${product.mainImagePath}" th:alt="${product.name}">
+                <div class="card-body">
+                    <span class="badge warn">Sale</span>
+                    <h3 class="product-name" th:text="${product.name}">Tên sản phẩm</h3>
+                    <span class="price" th:text="${#numbers.formatDecimal(product.effectivePrice,0,'COMMA',0,'POINT')} + ' đ'">0 đ</span>
+                    <span class="old-price" th:text="${#numbers.formatDecimal(product.price,0,'COMMA',0,'POINT')} + ' đ'">0 đ</span>
+                </div>
+            </article>
+        </div>
+    </section>
+</main>
+</body>
+</html>

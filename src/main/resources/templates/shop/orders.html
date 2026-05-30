@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đơn hàng - QL Caffee</title>
+    <link rel="stylesheet" th:href="@{/css/shop.css}">
+</head>
+<body>
+<div th:replace="~{shop/fragments :: topbar}"></div>
+<div th:replace="~{shop/fragments :: flash}"></div>
+<main class="container">
+    <div class="section-title"><h1>Lịch sử đơn hàng</h1></div>
+    <table class="table">
+        <thead><tr><th>Mã đơn</th><th>Ngày</th><th>Trạng thái</th><th>Tổng</th><th></th></tr></thead>
+        <tbody>
+        <tr th:each="order : ${orders}">
+            <td th:text="${order.orderCode}">DH</td>
+            <td th:text="${#temporals.format(order.createdAt, 'dd/MM/yyyy HH:mm')}">Ngày</td>
+            <td><span class="badge" th:text="${order.status}">PENDING</span></td>
+            <td th:text="${#numbers.formatDecimal(order.totalAmount,0,'COMMA',0,'POINT')} + ' đ'">0 đ</td>
+            <td><a class="btn secondary small" th:href="@{/orders/{id}(id=${order.id})}">Chi tiết</a></td>
+        </tr>
+        </tbody>
+    </table>
+</main>
+</body>
+</html>

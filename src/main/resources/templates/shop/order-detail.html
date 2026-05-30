@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${order.orderCode} + ' - QL Caffee'">Đơn hàng</title>
+    <link rel="stylesheet" th:href="@{/css/shop.css}">
+</head>
+<body>
+<div th:replace="~{shop/fragments :: topbar}"></div>
+<div th:replace="~{shop/fragments :: flash}"></div>
+<main class="container">
+    <div class="section-title">
+        <h1 th:text="${order.orderCode}">Đơn hàng</h1>
+        <span class="badge" th:text="${order.status}">PENDING</span>
+    </div>
+    <div class="filters">
+        <section>
+            <table class="table">
+                <thead><tr><th>Sản phẩm</th><th>Giá</th><th>Số lượng</th><th>Tổng</th></tr></thead>
+                <tbody>
+                <tr th:each="item : ${order.items}">
+                    <td th:text="${item.productName}">Tên</td>
+                    <td th:text="${#numbers.formatDecimal(item.price,0,'COMMA',0,'POINT')} + ' đ'">0 đ</td>
+                    <td th:text="${item.quantity}">1</td>
+                    <td th:text="${#numbers.formatDecimal(item.total,0,'COMMA',0,'POINT')} + ' đ'">0 đ</td>
+                </tr>
+                </tbody>
+            </table>
+        </section>
+        <aside class="panel">
+            <p><strong>Người nhận:</strong> <span th:text="${order.receiverName}"></span></p>
+            <p><strong>Điện thoại:</strong> <span th:text="${order.receiverPhone}"></span></p>
+            <p><strong>Địa chỉ:</strong> <span th:text="${order.shippingAddress}"></span></p>
+            <p><strong>Thanh toán:</strong> <span th:text="${order.paymentMethod}"></span></p>
+            <p><strong>Trạng thái thanh toán:</strong> <span th:text="${order.paymentStatus}"></span></p>
+            <p th:if="${order.paymentReference != null}"><strong>Mã giao dịch:</strong> <span th:text="${order.paymentReference}"></span></p>
+            <div th:if="${order.paymentMethod != T(com.example.Admin.Shop.Model.PaymentMethod).COD and order.paymentStatus == T(com.example.Admin.Shop.Model.PaymentStatus).PENDING}" class="actions">
+                <a class="btn" th:href="@{/payments/{id}(id=${order.id})}">Tiếp tục thanh toán</a>
+            </div>
+            <p>Tạm tính: <strong th:text="${#numbers.formatDecimal(order.subtotal,0,'COMMA',0,'POINT')} + ' đ'"></strong></p>
+            <p>Giảm: <strong th:text="${#numbers.formatDecimal(order.discountAmount,0,'COMMA',0,'POINT')} + ' đ'"></strong></p>
+            <p>Thành tiền: <strong class="price" th:text="${#numbers.formatDecimal(order.totalAmount,0,'COMMA',0,'POINT')} + ' đ'"></strong></p>
+            <form th:if="${order.cancelableByCustomer}" th:action="@{/orders/{id}/cancel(id=${order.id})}" method="post" class="actions">
+                <button class="btn danger" type="submit">Hủy đơn</button>
+            </form>
+        </aside>
+    </div>
+</main>
+</body>
+</html>

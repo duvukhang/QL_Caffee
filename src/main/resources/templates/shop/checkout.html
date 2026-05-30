@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thanh toán - QL Caffee</title>
+    <link rel="stylesheet" th:href="@{/css/shop.css}">
+</head>
+<body>
+<div th:replace="~{shop/fragments :: topbar}"></div>
+<div th:replace="~{shop/fragments :: flash}"></div>
+<main class="container">
+    <div class="section-title"><h1>Thanh toán</h1></div>
+    <div class="filters">
+        <form class="panel" th:action="@{/checkout}" method="post">
+            <div class="form-row">
+                <div><label>Người nhận</label><input class="form-control" name="receiverName" th:value="${currentShopUser.fullName}" required></div>
+                <div><label>Số điện thoại</label><input class="form-control" name="receiverPhone" th:value="${currentShopUser.phone}" pattern="\d{10,11}" required></div>
+            </div>
+            <label>Địa chỉ giao hàng</label>
+            <input class="form-control" name="shippingAddress" th:value="${currentShopUser.address}" required>
+            <div style="margin-top:12px">
+                <label>Thanh toán</label>
+                <select name="paymentMethod">
+                    <option th:each="method : ${paymentMethods}" th:value="${method}" th:text="${method}"></option>
+                </select>
+            </div>
+            <div class="actions"><button class="btn" type="submit">Đặt hàng</button></div>
+        </form>
+        <aside class="panel">
+            <h2>Đơn hàng</h2>
+            <p th:each="item : ${cart.items}"><span th:text="${item.product.name}">Tên</span> x <span th:text="${item.quantity}">1</span></p>
+            <p>Tạm tính: <strong th:text="${#numbers.formatDecimal(subtotal,0,'COMMA',0,'POINT')} + ' đ'">0 đ</strong></p>
+            <p>Mã: <strong th:text="${couponCode ?: 'Không dùng'}">SALE10</strong></p>
+            <p>Giảm: <strong th:text="${#numbers.formatDecimal(couponQuote.discountAmount,0,'COMMA',0,'POINT')} + ' đ'">0 đ</strong></p>
+            <p>Thành tiền: <strong class="price" th:text="${#numbers.formatDecimal(couponQuote.totalAmount,0,'COMMA',0,'POINT')} + ' đ'">0 đ</strong></p>
+        </aside>
+    </div>
+</main>
+</body>
+</html>

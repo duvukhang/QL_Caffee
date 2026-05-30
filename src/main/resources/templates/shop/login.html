@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng nhập - QL Caffee</title>
+    <link rel="stylesheet" th:href="@{/css/shop.css}">
+</head>
+<body>
+<div th:replace="~{shop/fragments :: topbar}"></div>
+<div th:replace="~{shop/fragments :: flash}"></div>
+<main class="container">
+    <section class="panel auth">
+        <h1>Đăng nhập</h1>
+        <form th:action="@{/login}" method="post">
+            <div>
+                <label>Username hoặc email</label>
+                <input class="form-control" name="username" autocomplete="username" required>
+            </div>
+            <div style="margin-top:12px">
+                <label>Mật khẩu</label>
+                <input class="form-control" type="password" name="password" autocomplete="current-password" required>
+            </div>
+            <div class="actions">
+                <button class="btn" type="submit">Đăng nhập</button>
+                <a class="btn secondary" th:href="@{/register}">Tạo tài khoản</a>
+            </div>
+        </form>
+    </section>
+</main>
+</body>
+</html>

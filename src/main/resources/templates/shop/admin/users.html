@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Người dùng</title>
+    <link rel="stylesheet" th:href="@{/css/shop.css}">
+</head>
+<body>
+<div th:replace="~{shop/fragments :: topbar}"></div>
+<div th:replace="~{shop/fragments :: flash}"></div>
+<main class="container admin-shell">
+    <div th:replace="~{shop/fragments :: adminNav}"></div>
+    <section>
+        <div class="section-title"><h1>Người dùng</h1></div>
+        <table class="table">
+            <thead><tr><th>Username</th><th>Email</th><th>Vai trò</th><th>Trạng thái</th><th></th></tr></thead>
+            <tbody>
+            <tr th:each="user : ${users}">
+                <td><strong th:text="${user.username}">user</strong><p class="muted" th:text="${user.fullName}"></p></td>
+                <td th:text="${user.email}">email</td>
+                <td>
+                    <form th:action="@{/admin/users/{id}/role(id=${user.id})}" method="post" class="actions">
+                        <select name="role">
+                            <option th:each="role : ${roles}" th:value="${role}" th:selected="${role == user.role}" th:text="${role}"></option>
+                        </select>
+                        <button class="btn secondary small" type="submit">Lưu</button>
+                    </form>
+                </td>
+                <td th:text="${user.enabled} ? 'Enabled' : 'Locked'">Enabled</td>
+                <td>
+                    <form th:action="@{/admin/users/{id}/toggle(id=${user.id})}" method="post">
+                        <button class="btn danger small" type="submit" th:text="${user.enabled} ? 'Khóa' : 'Mở khóa'">Khóa</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+</main>
+</body>
+</html>

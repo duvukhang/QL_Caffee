@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tồn kho</title>
+    <link rel="stylesheet" th:href="@{/css/shop.css}">
+</head>
+<body>
+<div th:replace="~{shop/fragments :: topbar}"></div>
+<div th:replace="~{shop/fragments :: flash}"></div>
+<main class="container admin-shell">
+    <div th:replace="~{shop/fragments :: adminNav}"></div>
+    <section>
+        <div class="section-title"><h1>Tồn kho</h1></div>
+        <form class="panel" th:action="@{/admin/inventory/import}" method="post">
+            <div class="form-row">
+                <div><label>Sản phẩm</label><select name="productId"><option th:each="product : ${products}" th:value="${product.id}" th:text="${product.name}"></option></select></div>
+                <div><label>Số lượng nhập</label><input class="form-control" type="number" name="quantity" min="1" required></div>
+            </div>
+            <label>Ghi chú</label>
+            <input class="form-control" name="note">
+            <div class="actions"><button class="btn" type="submit">Nhập kho</button></div>
+        </form>
+        <div class="section-title"><h2>Sắp hết hàng</h2></div>
+        <div class="grid grid-3">
+            <article class="card card-body" th:each="product : ${lowStock}">
+                <strong th:text="${product.name}">Tên</strong>
+                <p class="badge danger" th:text="'Còn ' + ${product.quantity}">Còn 0</p>
+            </article>
+        </div>
+        <div class="section-title"><h2>Lịch sử nhập/xuất</h2></div>
+        <table class="table">
+            <thead><tr><th>Ngày</th><th>Sản phẩm</th><th>Loại</th><th>Số lượng</th><th>Ghi chú</th></tr></thead>
+            <tbody>
+            <tr th:each="history : ${histories}">
+                <td th:text="${#temporals.format(history.createdAt, 'dd/MM/yyyy HH:mm')}">Ngày</td>
+                <td th:text="${history.product.name}">SP</td>
+                <td th:text="${history.type}">IMPORT</td>
+                <td th:text="${history.quantity}">1</td>
+                <td th:text="${history.note}">Note</td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+</main>
+</body>
+</html>

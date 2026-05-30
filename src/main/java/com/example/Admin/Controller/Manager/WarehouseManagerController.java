@@ -22,7 +22,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/manager/kho")
-@PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+@PreAuthorize("hasAnyAuthority('Admin', 'Manager', 'ROLE_ADMIN', 'ROLE_MANAGER')")
 public class WarehouseManagerController {
 
     private final SqlWarehouseImportService sqlPhieuNhapKhoService;
@@ -54,27 +54,12 @@ public class WarehouseManagerController {
                 map.put("UnitName", item.getGood().getUnitName());
             }
 
-            Object inStockVal = 0;
-            try {
-                inStockVal = item.getClass().getMethod("getInStock").invoke(item);
-            } catch (Exception e1) {
-                try {
-                    inStockVal = item.getClass().getMethod("getInstock").invoke(item);
-                } catch (Exception e2) {
-                    inStockVal = 0;
-                }
-            }
-            map.put("InStock", inStockVal);
+            map.put("InStock", item.getQuantity() != null ? item.getQuantity() : 0);
             map.put("Status", item.getStatus());
             stockList.add(map);
 
-            try {
-                khoId[0] = item.getClass().getMethod("getInventoryId").invoke(item);
-            } catch (Exception e) {
-                try {
-                    khoId[0] = item.getClass().getMethod("getInventoryid").invoke(item);
-                } catch (Exception ex) {
-                }
+            if (item.getInventory() != null && item.getInventory().getInventoryId() != null) {
+                khoId[0] = item.getInventory().getInventoryId();
             }
         });
 

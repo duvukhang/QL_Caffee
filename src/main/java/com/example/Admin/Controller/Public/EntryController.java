@@ -8,7 +8,7 @@ public class EntryController {
 
     @GetMapping("/admin")
     public String admin() {
-        return "redirect:/login.html";
+        return "redirect:/admin/dashboard";
     }
 
     @GetMapping("/customer")

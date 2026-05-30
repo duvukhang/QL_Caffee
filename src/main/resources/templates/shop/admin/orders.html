@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đơn hàng admin</title>
+    <link rel="stylesheet" th:href="@{/css/shop.css}">
+</head>
+<body>
+<div th:replace="~{shop/fragments :: topbar}"></div>
+<div th:replace="~{shop/fragments :: flash}"></div>
+<main class="container admin-shell">
+    <div th:replace="~{shop/fragments :: adminNav}"></div>
+    <section>
+        <div class="section-title"><h1>Đơn hàng</h1></div>
+        <form class="panel actions" th:action="@{/admin/orders}" method="get">
+            <select name="status">
+                <option value="">Tất cả trạng thái</option>
+                <option th:each="s : ${statuses}" th:value="${s}" th:selected="${s == status}" th:text="${s}"></option>
+            </select>
+            <button class="btn secondary" type="submit">Lọc</button>
+        </form>
+        <table class="table" style="margin-top:16px">
+            <thead><tr><th>Mã</th><th>Khách</th><th>Ngày</th><th>Tổng</th><th>Thanh toán</th><th>Trạng thái</th><th>Cập nhật</th></tr></thead>
+            <tbody>
+            <tr th:each="order : ${orders}">
+                <td><a th:href="@{/orders/{id}(id=${order.id})}" th:text="${order.orderCode}">DH</a></td>
+                <td th:text="${order.user.fullName}">Khách</td>
+                <td th:text="${#temporals.format(order.createdAt, 'dd/MM/yyyy HH:mm')}">Ngày</td>
+                <td th:text="${#numbers.formatDecimal(order.totalAmount,0,'COMMA',0,'POINT')} + ' đ'">0 đ</td>
+                <td><span class="badge warn" th:text="|${order.paymentMethod} / ${order.paymentStatus}|">COD</span></td>
+                <td><span class="badge" th:text="${order.status}">PENDING</span></td>
+                <td>
+                    <form th:action="@{/admin/orders/{id}/status(id=${order.id})}" method="post" class="actions">
+                        <select name="status">
+                            <option th:each="s : ${statuses}" th:value="${s}" th:text="${s}"></option>
+                        </select>
+                        <button class="btn secondary small" type="submit">Lưu</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+</main>
+</body>
+</html>

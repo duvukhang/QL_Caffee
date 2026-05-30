@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đánh giá</title>
+    <link rel="stylesheet" th:href="@{/css/shop.css}">
+</head>
+<body>
+<div th:replace="~{shop/fragments :: topbar}"></div>
+<div th:replace="~{shop/fragments :: flash}"></div>
+<main class="container admin-shell">
+    <div th:replace="~{shop/fragments :: adminNav}"></div>
+    <section>
+        <div class="section-title"><h1>Đánh giá</h1></div>
+        <table class="table">
+            <thead><tr><th>Sản phẩm</th><th>Khách</th><th>Sao</th><th>Bình luận</th><th>Trạng thái</th><th></th></tr></thead>
+            <tbody>
+            <tr th:each="review : ${reviews}">
+                <td th:text="${review.product.name}">SP</td>
+                <td th:text="${review.user.username}">user</td>
+                <td th:text="${review.rating}">5</td>
+                <td th:text="${review.comment}">Comment</td>
+                <td th:text="${review.approved} ? 'Đã duyệt' : 'Chờ duyệt'">Chờ</td>
+                <td class="actions">
+                    <form th:if="${!review.approved}" th:action="@{/admin/reviews/{id}/approve(id=${review.id})}" method="post"><button class="btn secondary small" type="submit">Duyệt</button></form>
+                    <form th:action="@{/admin/reviews/{id}/delete(id=${review.id})}" method="post"><button class="btn danger small" type="submit">Xóa</button></form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+</main>
+</body>
+</html>

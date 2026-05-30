@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mã của tôi - QL Caffee</title>
+    <link rel="stylesheet" th:href="@{/css/shop.css}">
+</head>
+<body>
+<div th:replace="~{shop/fragments :: topbar}"></div>
+<main class="container">
+    <div class="section-title"><h1>Mã khuyến mãi của tôi</h1></div>
+    <section>
+        <h2>Được gán riêng</h2>
+        <div class="grid grid-3">
+            <article class="card card-body" th:each="assigned : ${assignedCoupons}">
+                <h3 th:text="${assigned.coupon.code}">VIP20</h3>
+                <p class="muted" th:text="${assigned.used} ? 'Đã dùng' : 'Chưa dùng'">Chưa dùng</p>
+            </article>
+        </div>
+    </section>
+    <section>
+        <h2>Mã public</h2>
+        <div class="grid grid-3">
+            <article class="card card-body" th:each="coupon : ${publicCoupons}">
+                <h3 th:text="${coupon.code}">SALE10</h3>
+                <p class="muted">Đơn tối thiểu <span th:text="${#numbers.formatDecimal(coupon.minOrderAmount,0,'COMMA',0,'POINT')}"></span> đ</p>
+            </article>
+        </div>
+    </section>
+</main>
+</body>
+</html>

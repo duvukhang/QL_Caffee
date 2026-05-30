@@ -35,7 +35,7 @@ public class CustomerHomeController {
         this.storeRepository = storeRepository;
     }
 
-    @GetMapping({"/", "/home", "/home/index"})
+    @GetMapping({"/home", "/home/index"})
     public String index(
             @RequestParam(required = false) String maDm,
             @RequestParam(required = false) String keyword,
