@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
+<title>Sửa hồ sơ</title>
+<main>
+    <section class="page-banner">
+        <h1>Cập nhật hồ sơ</h1>
+        <p>Điều chỉnh thông tin cá nhân để việc liên hệ và giao hàng được chính xác hơn.</p>
+    </section>
+
+    <section class="section">
+        <form class="form" th:action="@{/user/edit-profile}" th:object="${editProfileForm}" method="post" style="max-width:860px">
+            <h2>Sửa hồ sơ khách hàng</h2>
+            <div class="alert success" th:if="${success}" th:text="${success}"></div>
+            <div class="alert error" th:if="${error}" th:text="${error}"></div>
+
+            <div class="form-grid">
+                <div>
+                    <label>Họ tên</label>
+                    <input type="text" th:field="*{fullName}" maxlength="50" required>
+                    <div class="field-error" th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}"></div>
+                </div>
+                <div>
+                    <label>Giới tính</label>
+                    <select th:field="*{gender}">
+                        <option value="">-- Chọn giới tính --</option>
+                        <option value="Nam">Nam</option>
+                        <option value="Nữ">Nữ</option>
+                        <option value="Khác">Khác</option>
+                    </select>
+                    <div class="field-error" th:if="${#fields.hasErrors('gender')}" th:errors="*{gender}"></div>
+                </div>
+                <div>
+                    <label>Số điện thoại</label>
+                    <input type="tel" th:field="*{phone}" maxlength="10" inputmode="numeric" autocomplete="tel-national" pattern="0[0-9]{9}" placeholder="Nhập 10 số điện thoại" required>
+                    <div class="field-error" th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}"></div>
+                </div>
+                <div>
+                    <label>CMND/CCCD</label>
+                    <input type="text" th:field="*{idNumber}" maxlength="11" inputmode="numeric" pattern="[0-9]{9,11}" placeholder="9 đến 11 số theo database">
+                    <div class="field-error" th:if="${#fields.hasErrors('idNumber')}" th:errors="*{idNumber}"></div>
+                </div>
+                <div>
+                    <label>Email</label>
+                    <input type="email" th:field="*{email}" maxlength="50" required>
+                    <div class="field-error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
+                </div>
+                <div>
+                    <label>Địa chỉ</label>
+                    <input type="text" th:field="*{address}" maxlength="100">
+                    <div class="field-error" th:if="${#fields.hasErrors('address')}" th:errors="*{address}"></div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button class="btn" type="submit">Lưu thay đổi</button>
+                <a class="btn secondary" th:href="@{/user/profile}">Quay lại hồ sơ</a>
+            </div>
+        </form>
+    </section>
+</main>
+</html>

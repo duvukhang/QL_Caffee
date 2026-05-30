@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Coffee</title>
+    <style>
+        body { margin: 0; font-family: Arial, sans-serif; background: #f8fafc; color: #0f172a; }
+        header { background: #0f766e; color: white; padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+        main { max-width: 1120px; margin: 0 auto; padding: 24px; }
+        button, .button { border: 0; border-radius: 4px; background: #0f766e; color: white; padding: 9px 12px; font-weight: 700; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; }
+        button.secondary, .button.secondary { background: #334155; }
+        button.danger { background: #dc2626; }
+        button:disabled { background: #94a3b8; cursor: not-allowed; }
+        .toolbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
+        .card { background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px; box-shadow: 0 6px 16px rgba(15, 23, 42, 0.05); }
+        .product-img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; background: #e2e8f0; border-radius: 6px; margin-bottom: 10px; }
+        .section-title { margin: 26px 0 12px; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+        .muted { color: #64748b; font-size: 13px; }
+        .price { color: #dc2626; font-weight: 800; }
+        .notice { display: none; margin: 16px 0; padding: 12px; border-left: 4px solid #0f766e; background: #ccfbf1; color: #134e4a; border-radius: 4px; }
+        .notice.error { border-left-color: #dc2626; background: #fee2e2; color: #991b1b; }
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; border: 1px solid #e2e8f0; }
+        th, td { padding: 10px; border-bottom: 1px solid #e2e8f0; text-align: left; font-size: 14px; }
+        th { background: #f1f5f9; color: #475569; }
+        @media (max-width: 640px) {
+            header { align-items: flex-start; flex-direction: column; }
+            main { padding: 16px; }
+            .section-title { align-items: flex-start; flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div>
+            <strong>Customer Coffee</strong>
+            <div class="muted" id="customer-name" style="color:#d1fae5;">Trang khach hang</div>
+        </div>
+        <div class="toolbar" id="auth-actions"></div>
+    </header>
+
+    <main>
+        <div id="notice" class="notice"></div>
+
+        <div class="section-title">
+            <h2>San pham</h2>
+            <span class="muted">Mo trang mac dinh se vao khu vuc khach hang truoc</span>
+        </div>
+        <div id="product-list" class="grid"></div>
+
+        <div class="section-title">
+            <h2>Don hang cua toi</h2>
+            <span class="muted" id="order-count"></span>
+        </div>
+        <div style="overflow-x:auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Ma don</th>
+                        <th>Trang thai</th>
+                        <th>Ngay tao</th>
+                        <th>Thao tac</th>
+                    </tr>
+                </thead>
+                <tbody id="order-list">
+                    <tr><td colspan="4">Dang tai...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <script>
+        const token = localStorage.getItem("token");
+        const role = localStorage.getItem("role");
+        const isCustomer = Boolean(token && role === "Customer");
+
+        function authHeaders() {
+            return {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + token
+            };
+        }
+
+        async function loadAll() {
+            renderAuthActions();
+            await loadProducts();
+            if (isCustomer) {
+                await Promise.all([loadProfile(), loadOrders()]);
+            } else {
+                document.getElementById("customer-name").innerText = "Khach hang chua dang nhap";
+                document.getElementById("order-count").innerText = "";
+                document.getElementById("order-list").innerHTML = "<tr><td colspan='4'>Dang nhap de xem don hang cua ban.</td></tr>";
+            }
+        }
+
+        function renderAuthActions() {
+            const actions = document.getElementById("auth-actions");
+            if (isCustomer) {
+                actions.innerHTML = `
+                    <button class="secondary" onclick="loadAll()">Lam moi</button>
+                    <button class="danger" onclick="logout()">Dang xuat</button>
+                `;
+                return;
+            }
+
+            actions.innerHTML = `
+                <a class="button" href="login.html">Dang nhap</a>
+                <a class="button secondary" href="register.html">Dang ky</a>
+                <a class="button secondary" href="../admin/login.html">Admin</a>
+            `;
+        }
+
+        async function loadProfile() {
+            const response = await fetch("/Customer/Profile", { headers: authHeaders() });
+            if (!response.ok) {
+                logout();
+                return;
+            }
+            const profile = await response.json();
+            document.getElementById("customer-name").innerText = profile.fullName || profile.email || "Khach hang";
+        }
+
+        async function loadProducts() {
+            const container = document.getElementById("product-list");
+            container.innerHTML = "<div class='muted'>Dang tai san pham...</div>";
+            const response = await fetch("/public/Product/1/12");
+            if (!response.ok || response.status === 204) {
+                container.innerHTML = "<div class='muted'>Chua co san pham.</div>";
+                return;
+            }
+            const data = await response.json();
+            const items = data.items || [];
+            if (!items.length) {
+                container.innerHTML = "<div class='muted'>Chua co san pham.</div>";
+                return;
+            }
+
+            container.innerHTML = items.map(item => {
+                const product = item.Value || item.value || {};
+                const img = product.img || "/uploads/default.png";
+                const price = Number(product.price || 0).toLocaleString("vi-VN");
+                return `
+                    <div class="card">
+                        <img class="product-img" src="${img}" onerror="this.src='/uploads/default.png'" alt="">
+                        <strong>${product.productName || "San pham"}</strong>
+                        <div class="muted">${product.productId || ""}</div>
+                        <p class="price">${price} d</p>
+                        <button onclick="createOrder('${product.productId}')">Dat hang</button>
+                    </div>
+                `;
+            }).join("");
+        }
+
+        async function loadOrders() {
+            const body = document.getElementById("order-list");
+            const response = await fetch("/Customer/Orders", { headers: authHeaders() });
+            if (!response.ok) {
+                body.innerHTML = "<tr><td colspan='4'>Khong tai duoc don hang.</td></tr>";
+                return;
+            }
+            const orders = await response.json();
+            document.getElementById("order-count").innerText = `${orders.length} don`;
+            if (!orders.length) {
+                body.innerHTML = "<tr><td colspan='4'>Ban chua co don hang.</td></tr>";
+                return;
+            }
+            body.innerHTML = orders.map(order => `
+                <tr>
+                    <td>${order.orderId}</td>
+                    <td>${order.status || ""}</td>
+                    <td>${formatDate(order.recivingDate)}</td>
+                    <td><button class="danger" onclick="cancelOrder('${order.orderId}')">Huy don</button></td>
+                </tr>
+            `).join("");
+        }
+
+        async function createOrder(productId) {
+            if (!isCustomer) {
+                window.location.href = "login.html";
+                return;
+            }
+
+            const quantityText = prompt("Nhap so luong", "1");
+            const quantity = Number(quantityText);
+            if (!quantity || quantity <= 0) {
+                return;
+            }
+
+            const response = await fetch("/Customer/Orders", {
+                method: "POST",
+                headers: authHeaders(),
+                body: JSON.stringify({ dssp: [{ masp: productId, soLuong: quantity }] })
+            });
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok) {
+                showNotice(data.message || "Khong tao duoc don hang.", true);
+                return;
+            }
+            showNotice("Tao don hang thanh cong: " + data.orderId);
+            await loadOrders();
+        }
+
+        async function cancelOrder(orderId) {
+            if (!confirm("Huy don " + orderId + "?")) {
+                return;
+            }
+            const response = await fetch(`/Customer/Orders/${orderId}/Cancel`, {
+                method: "PUT",
+                headers: authHeaders()
+            });
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok) {
+                showNotice(data.message || "Khong huy duoc don hang.", true);
+                return;
+            }
+            showNotice("Da huy don hang.");
+            await loadOrders();
+        }
+
+        function formatDate(value) {
+            if (!value) return "";
+            const date = new Date(value);
+            return Number.isNaN(date.getTime()) ? value : date.toLocaleString("vi-VN");
+        }
+
+        function showNotice(message, isError = false) {
+            const notice = document.getElementById("notice");
+            notice.innerText = message;
+            notice.className = "notice" + (isError ? " error" : "");
+            notice.style.display = "block";
+            setTimeout(() => notice.style.display = "none", 3500);
+        }
+
+        function logout() {
+            localStorage.removeItem("token");
+            localStorage.removeItem("role");
+            localStorage.removeItem("accountType");
+            localStorage.removeItem("displayName");
+            localStorage.removeItem("customerId");
+            window.location.href = "home.html";
+        }
+
+        loadAll();
+    </script>
+</body>
+</html>

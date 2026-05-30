@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
+<title>Đơn hàng</title>
+<main>
+    <section class="page-banner">
+        <h1>Quản lý đơn hàng</h1>
+        <p>Theo dõi các đơn hàng đã đặt và kiểm tra trạng thái xử lý của từng đơn.</p>
+    </section>
+    <section class="section">
+        <a class="btn" th:href="@{/order/history}">Xem lịch sử đơn hàng</a>
+    </section>
+</main>
+</html>

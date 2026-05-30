@@ -59,17 +59,25 @@
                     body: JSON.stringify({ username: user, password: pass })
                 });
 
+                const data = await response.json().catch(() => ({}));
+
                 if (!response.ok) {
-                    throw new Error("Tài khoản hoặc mật khẩu không chính xác!");
+                    throw new Error(data.message || "Tài khoản hoặc mật khẩu không chính xác!");
                 }
 
-                const data = await response.json();
+                if (data.roles === "Customer" || data.accountType === "Customer") {
+                    throw new Error("Tài khoản này là khách hàng. Vui lòng đăng nhập ở trang khách hàng.");
+                }
 
                 const jwtToken = data.token || data.accessToken || data.jwt;
 
                 if (jwtToken) {
                     localStorage.setItem("token", jwtToken);
-                    window.location.href = "/index.html";
+                    localStorage.setItem("role", data.roles || "");
+                    localStorage.setItem("accountType", data.accountType || "");
+                    localStorage.setItem("displayName", data.staffName || data.userName || "");
+                    localStorage.removeItem("customerId");
+                    window.location.href = data.redirectUrl || "/index.html";
                 } else {
                     throw new Error("Cấu trúc trả về từ Server không hợp lệ!");
                 }

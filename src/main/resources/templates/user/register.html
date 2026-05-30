@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
+<title>Đăng ký</title>
+<main class="auth-shell">
+    <div class="auth-wrapper">
+        <section class="auth-side">
+            <span class="badge-outline" style="background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.18);color:#fff">Tạo tài khoản mới</span>
+            <h2>Gia nhập Ban Caffee ngay hôm nay</h2>
+            <p>Tạo tài khoản để đặt hàng tiện lợi, quản lý thông tin cá nhân và xem lịch sử mua sắm bất cứ lúc nào.</p>
+            <ul>
+                <li>Đăng ký nhanh với các trường thông tin cơ bản</li>
+                <li>Quản lý địa chỉ, số điện thoại và hồ sơ khách hàng</li>
+                <li>Nhận trải nghiệm mua sắm chuyên nghiệp hơn</li>
+            </ul>
+        </section>
+
+        <form class="form" th:action="@{/user/register}" th:object="${registerForm}" method="post">
+            <h1>Đăng ký khách hàng</h1>
+            <div class="alert error" th:if="${error}" th:text="${error}"></div>
+
+            <div class="form-grid">
+                <div>
+                    <label>Email</label>
+                    <input th:field="*{email}" type="email" maxlength="50" required>
+                    <div class="field-error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
+                </div>
+                <div>
+                    <label>Mật khẩu</label>
+                    <input th:field="*{password}" type="password" minlength="6" maxlength="50" required>
+                    <div class="field-error" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></div>
+                </div>
+                <div>
+                    <label>Họ tên</label>
+                    <input th:field="*{fullname}" maxlength="50" required>
+                    <div class="field-error" th:if="${#fields.hasErrors('fullname')}" th:errors="*{fullname}"></div>
+                </div>
+                <div>
+                    <label>Giới tính</label>
+                    <select th:field="*{gender}">
+                        <option value="">-- Chọn giới tính --</option>
+                        <option value="Nam">Nam</option>
+                        <option value="Nữ">Nữ</option>
+                        <option value="Khác">Khác</option>
+                    </select>
+                    <div class="field-error" th:if="${#fields.hasErrors('gender')}" th:errors="*{gender}"></div>
+                </div>
+                <div>
+                    <label>Số điện thoại</label>
+                    <input th:field="*{phone}" inputmode="numeric" pattern="0[0-9]{9}" maxlength="10" placeholder="VD: 0912345678" required>
+                    <div class="field-error" th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}"></div>
+                </div>
+                <div>
+                    <label>CMND/CCCD</label>
+                    <input th:field="*{cccd}" inputmode="numeric" pattern="[0-9]{9,11}" maxlength="11" placeholder="9 đến 11 số theo database">
+                    <div class="field-error" th:if="${#fields.hasErrors('cccd')}" th:errors="*{cccd}"></div>
+                </div>
+            </div>
+
+            <div>
+                <label>Địa chỉ</label>
+                <input th:field="*{address}" maxlength="100">
+                <div class="field-error" th:if="${#fields.hasErrors('address')}" th:errors="*{address}"></div>
+            </div>
+
+            <div class="form-actions">
+                <button class="btn" type="submit">Tạo tài khoản</button>
+                <a class="btn secondary" th:href="@{/user/login}">Đã có tài khoản</a>
+            </div>
+        </form>
+    </div>
+</main>
+</html>

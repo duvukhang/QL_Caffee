@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
+<title>Danh mục sản phẩm</title>
+<main>
+    <section class="page-banner">
+        <h1>Danh mục sản phẩm</h1>
+        <p>Khám phá nhanh từng nhóm sản phẩm để mua sắm đúng nhu cầu của bạn: cà phê, bánh ngọt, đồ uống và món ăn kèm.</p>
+    </section>
+
+    <section class="section">
+        <div class="grid">
+            <a class="card" th:each="c : ${categories}" th:href="@{/(maDm=${c.subCategoryId})}" style="text-decoration:none;display:block">
+                <div class="icon-bullet">☕</div>
+                <h3 th:text="${c.subCategoryName}">Tên danh mục</h3>
+                <p class="muted">Nhấn để xem tất cả sản phẩm trong danh mục này.</p>
+                <span class="badge">Xem sản phẩm</span>
+            </a>
+        </div>
+    </section>
+</main>
+</html>

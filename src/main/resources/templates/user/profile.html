@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
+<title>Hồ sơ khách hàng</title>
+<main class="profile-shell">
+    <section class="page-banner">
+        <h1>Hồ sơ khách hàng</h1>
+        <p>Quản lý thông tin cá nhân, chỉnh sửa hồ sơ và cập nhật mật khẩu để tài khoản luôn an toàn.</p>
+    </section>
+
+    <div class="alert success" th:if="${successMessage}" th:text="${successMessage}"></div>
+
+    <section class="profile-grid section">
+        <aside class="card profile-sidebar">
+            <div class="profile-avatar" th:text="${user.fullName != null and !#strings.isEmpty(user.fullName) ? #strings.substring(user.fullName,0,1) : 'U'}">U</div>
+            <h2 th:text="${user.fullName}">Khách hàng</h2>
+            <p class="muted" th:text="${user.email}">email</p>
+            <div class="form-actions" style="justify-content:center">
+                <a class="btn block" th:href="@{/user/edit-profile}">Sửa hồ sơ</a>
+                <a class="btn secondary block" th:href="@{/user/change-password}">Đổi mật khẩu</a>
+            </div>
+        </aside>
+        <section class="card">
+            <div class="profile-list">
+                <div class="profile-row"><strong>Mã khách hàng</strong><span th:text="${user.customerId}"></span></div>
+                <div class="profile-row"><strong>Họ tên</strong><span th:text="${user.fullName}"></span></div>
+                <div class="profile-row"><strong>Giới tính</strong><span th:text="${user.gender ?: 'Chưa cập nhật'}"></span></div>
+                <div class="profile-row"><strong>CMND/CCCD</strong><span th:text="${user.idNumber ?: 'Chưa cập nhật'}"></span></div>
+                <div class="profile-row"><strong>Email</strong><span th:text="${user.email}"></span></div>
+                <div class="profile-row"><strong>Số điện thoại</strong><span th:text="${user.phoneNum}"></span></div>
+                <div class="profile-row"><strong>Địa chỉ</strong><span th:text="${user.addr ?: 'Chưa cập nhật'}"></span></div>
+            </div>
+        </section>
+    </section>
+</main>
+</html>

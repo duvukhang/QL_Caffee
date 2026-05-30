@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
+<title>Thanh toán</title>
+<main class="checkout-shell">
+    <section class="page-banner">
+        <h1>Thanh toán đơn hàng</h1>
+        <p>Điền đầy đủ thông tin người nhận và lựa chọn phương thức thanh toán để hoàn tất đơn hàng.</p>
+    </section>
+
+    <section class="split-layout section">
+        <form class="form" th:action="@{/order/checkout}" th:object="${checkoutForm}" method="post">
+            <h2>Thông tin giao hàng</h2>
+            <div class="alert error" th:if="${error}" th:text="${error}"></div>
+            <div class="form-grid">
+                <div>
+                    <label>Người nhận</label>
+                    <input th:field="*{receiverName}">
+                    <div class="field-error" th:errors="*{receiverName}"></div>
+                </div>
+                <div>
+                    <label>Điện thoại</label>
+                    <input th:field="*{receiverPhone}">
+                    <div class="field-error" th:errors="*{receiverPhone}"></div>
+                </div>
+            </div>
+            <div>
+                <label>Địa chỉ giao hàng</label>
+                <input th:field="*{receiverAddress}">
+                <div class="field-error" th:errors="*{receiverAddress}"></div>
+            </div>
+            <div>
+                <label>Phương thức thanh toán</label>
+                <select th:field="*{paymentMethod}">
+                    <option value="COD">Thanh toán khi nhận hàng (COD)</option>
+                    <option value="EWALLET">Ví điện tử</option>
+                    <option value="CARD">Thẻ ngân hàng</option>
+                </select>
+                <div class="field-error" th:errors="*{paymentMethod}"></div>
+            </div>
+            <div>
+                <label>Ghi chú</label>
+                <textarea th:field="*{note}" placeholder="Ví dụ: giao giờ hành chính, gọi trước khi giao..."></textarea>
+            </div>
+            <div class="form-actions">
+                <button class="btn" type="submit">Đặt hàng</button>
+                <a class="btn secondary" th:href="@{/cart/gio-hang}">Quay lại giỏ hàng</a>
+            </div>
+        </form>
+
+        <aside class="info-card summary-card">
+            <h2>Đơn hàng của bạn</h2>
+            <div class="summary-line" th:each="i : ${checkoutForm.cartItems}">
+                <span><span th:text="${i.productName}">Tên SP</span> × <span th:text="${i.quantity}">1</span></span>
+                <strong th:text="${#numbers.formatDecimal(i.total,0,'COMMA',0,'POINT')} + ' đ'">0 đ</strong>
+            </div>
+            <div class="summary-line">
+                <span>Tổng thanh toán</span>
+                <strong class="summary-total" th:text="${#numbers.formatDecimal(checkoutForm.grandTotal,0,'COMMA',0,'POINT')} + ' đ'">0 đ</strong>
+            </div>
+            <div class="mini-card" style="margin-top:16px">
+                <h4 style="margin-top:0">Cam kết dịch vụ</h4>
+                <p>✔ Xác nhận đơn nhanh</p>
+                <p>✔ Trạng thái đơn hàng rõ ràng</p>
+                <p>✔ Hỗ trợ khách hàng tận tình</p>
+            </div>
+        </aside>
+    </section>
+</main>
+</html>

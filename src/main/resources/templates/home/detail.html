@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
+<title>Chi tiết sản phẩm</title>
+<main class="detail-shell">
+    <section class="product-detail-card card">
+        <div class="detail-image">
+            <img th:src="${product.img ?: '/img/no-image.png'}" alt="product">
+        </div>
+        <div class="detail-content">
+            <span class="badge" th:text="${product.subcategory != null ? product.subcategory.subCategoryName : 'Sản phẩm'}">Sản phẩm</span>
+            <h1 th:text="${product.productName}">Tên sản phẩm</h1>
+            <div class="price" th:text="${#numbers.formatDecimal(product.price,0,'COMMA',0,'POINT')} + ' đ'">0 đ</div>
+            <p class="muted" th:text="${product.decription ?: 'Sản phẩm chất lượng, hương vị hài hòa, phù hợp để thưởng thức mọi lúc.'}"></p>
+            <div class="detail-list">
+                <div class="detail-item"><span>Mã sản phẩm</span><strong th:text="${product.productId}"></strong></div>
+                <div class="detail-item"><span>Tình trạng</span><strong th:text="${product.status ?: 'Đang kinh doanh'}"></strong></div>
+                <div class="detail-item"><span>Danh mục</span><strong th:text="${product.subcategory != null ? product.subcategory.subCategoryName : 'Đang cập nhật'}"></strong></div>
+            </div>
+            <div class="actions">
+                <a class="btn" th:href="@{/cart/add(id=${product.productId})}">Thêm vào giỏ</a>
+                <a class="btn secondary" th:href="@{/}">Quay lại mua sắm</a>
+            </div>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="section-head">
+            <div>
+                <h2>Sản phẩm liên quan</h2>
+                <p>Các lựa chọn cùng danh mục để bạn tham khảo thêm.</p>
+            </div>
+        </div>
+        <div class="grid" th:if="${!relatedProducts.isEmpty()}">
+            <article class="card product-card" th:each="p : ${relatedProducts}">
+                <div class="product-media">
+                    <img th:src="${p.img ?: '/img/no-image.png'}" alt="product">
+                </div>
+                <div class="product-body">
+                    <h3 th:text="${p.productName}">Tên SP</h3>
+                    <p class="product-desc" th:text="${p.decription ?: 'Sản phẩm cùng danh mục dành cho bạn.'}"></p>
+                    <div class="product-meta">
+                        <span class="price" th:text="${#numbers.formatDecimal(p.price,0,'COMMA',0,'POINT')} + ' đ'">0 đ</span>
+                    </div>
+                    <div class="actions">
+                        <a class="btn secondary" th:href="@{/home/detail(id=${p.productId})}">Xem chi tiết</a>
+                        <a class="btn" th:href="@{/cart/add(id=${p.productId})}">Thêm giỏ</a>
+                    </div>
+                </div>
+            </article>
+        </div>
+        <div class="empty-state" th:if="${relatedProducts.isEmpty()}">
+            <div class="empty-icon">📦</div>
+            <h3>Chưa có sản phẩm liên quan</h3>
+            <p>Hiện chưa có thêm gợi ý trong cùng danh mục cho sản phẩm này.</p>
+        </div>
+    </section>
+</main>
+</html>

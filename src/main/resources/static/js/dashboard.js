@@ -129,10 +129,14 @@ function renderProductsToTable(listData) {
 
 function verifyAuthentication() {
     const token = localStorage.getItem("token");
+    const role = localStorage.getItem("role");
+    const accountType = localStorage.getItem("accountType");
+    const isCustomerSession = role === "Customer" || accountType === "Customer";
+    const isAdminSession = Boolean(token) && !isCustomerSession;
     const loginAlert = document.getElementById("login-alert");
     const authSection = document.getElementById("auth-section");
 
-    if (!token) {
+    if (!isAdminSession) {
         isAuthenticated = false;
         loginAlert.classList.remove("hidden");
 
@@ -156,13 +160,11 @@ function verifyAuthentication() {
     isAuthenticated = true;
     loginAlert.classList.add("hidden");
 
-    let displayName = "Quản trị viên";
+    let displayName = localStorage.getItem("displayName") || "Quản trị viên";
     try {
         const payloadBase64 = token.split(".")[1];
         const decodedPayload = JSON.parse(atob(payloadBase64));
-        if (decodedPayload.sub) {
-            displayName = decodedPayload.sub;
-        }
+        displayName = localStorage.getItem("displayName") || decodedPayload.userName || decodedPayload.sub || displayName;
     } catch (error) {
         console.warn("Không thể giải mã token", error);
     }
@@ -265,6 +267,10 @@ function showToast(message, type = "success") {
 
 function logout() {
     localStorage.removeItem("token");
+    localStorage.removeItem("role");
+    localStorage.removeItem("accountType");
+    localStorage.removeItem("displayName");
+    localStorage.removeItem("customerId");
     window.location.reload();
 }
 
