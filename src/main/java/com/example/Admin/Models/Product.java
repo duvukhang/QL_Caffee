@@ -32,8 +32,8 @@ public class Product {
     @Column(name = "Status", length = 100)
     private String status;
 
-    // Trong MyDbContext: entity.Property(e => e.Decription).HasColumnType("text");
-    @Column(name = "Decription", columnDefinition = "text")
+    // Trong MyDbContext: entity.Property(e => e.Decription).HasColumnType("nvarchar(max)");
+    @Column(name = "Decription", columnDefinition = "nvarchar(max)")
     private String description;
 
     @ManyToOne(fetch = FetchType.LAZY)

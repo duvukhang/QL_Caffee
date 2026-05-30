@@ -23,6 +23,37 @@ function loadStaffs() {
     });
 }
 
+function loadRolesAndStores() {
+    const roleSelect = document.getElementById('ddlRole');
+    const storeSelect = document.getElementById('ddlStoreId');
+
+    Promise.all([
+        fetch('/public/Roles').then(r => r.ok ? r.json() : []),
+        fetch('/public/Store').then(r => r.ok ? r.json() : [])
+    ]).then(([roles, stores]) => {
+        roleSelect.innerHTML = '';
+        if (!roles.length) {
+            roleSelect.innerHTML = '<option value="">Không tìm thấy quyền</option>';
+        } else {
+            roleSelect.innerHTML = '<option value="">Chọn quyền</option>' + roles.map(role => `
+                <option value="${role.roleId}">${role.roleName}</option>
+            `).join('');
+        }
+
+        storeSelect.innerHTML = '';
+        if (!stores.length) {
+            storeSelect.innerHTML = '<option value="">Không tìm thấy chi nhánh</option>';
+        } else {
+            storeSelect.innerHTML = '<option value="">Chọn chi nhánh</option>' + stores.map(store => `
+                <option value="${store.StoreId}">${store.StoreName}</option>
+            `).join('');
+        }
+    }).catch(() => {
+        roleSelect.innerHTML = '<option value="">Lỗi tải quyền</option>';
+        storeSelect.innerHTML = '<option value="">Lỗi tải chi nhánh</option>';
+    });
+}
+
 function saveStaff() {
     const id = document.getElementById("txtStaffIdHidden").value;
     const bodyData = {
@@ -53,7 +84,7 @@ function editStaff(id, name, role, store) {
     document.getElementById("txtStaffIdHidden").value = id;
     document.getElementById("txtName").value = name;
     document.getElementById("ddlRole").value = role;
-    document.getElementById("txtStoreId").value = store;
+    document.getElementById("ddlStoreId").value = store;
     document.getElementById("btnCancelEdit").style.display = "block";
 }
 
@@ -61,6 +92,8 @@ function cancelEditMode() {
     document.getElementById("form-title").innerText = "➕ THÊM NHÂN VIÊN MỚI";
     document.getElementById("staffForm").reset();
     document.getElementById("txtStaffIdHidden").value = "";
+    document.getElementById("ddlRole").selectedIndex = 0;
+    document.getElementById("ddlStoreId").selectedIndex = 0;
     document.getElementById("btnCancelEdit").style.display = "none";
 }
 
@@ -74,4 +107,7 @@ function deleteStaff(id) {
     }
 }
 
-document.addEventListener("DOMContentLoaded", loadStaffs);
+document.addEventListener("DOMContentLoaded", () => {
+    loadRolesAndStores();
+    loadStaffs();
+});

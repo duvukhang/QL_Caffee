@@ -24,7 +24,7 @@
 </head>
 <body>
     <div class="sidebar">
-        <div class="brand">🏬 HỆ THỐNG HUIT PORTAL</div>
+        <div class="brand">🏬 HỆ THỐNG K-STORE</div>
         <ul class="sidebar-menu">
             <li><a href="../index.html">📊 Thống Kê Tổng Quan</a></li>
             <li><a href="staff.html">👥 Quản Lý Nhân Viên</a></li>
@@ -37,7 +37,7 @@
         
         <div class="wrapper">
             <div class="panel">
-                <h3 id="panel-form-title" style="margin-top: 0; color: var(--primary);">➕ THÊM MỚI SẢN PHẨM</h3>
+                <h3 id="panel-form-title" style="margin-top: 0; color: var(--primary);">THÊM MỚI SẢN PHẨM</h3>
                 <form id="formProduct">
                     <input type="hidden" id="txtProdIdHidden">
                     <div class="field"><label>Tên Sản Phẩm</label><input type="text" id="txtProdName" required></div>
@@ -151,8 +151,8 @@
                     body: JSON.stringify({
                         productName: document.getElementById("txtProdName").value,
                         price: document.getElementById("txtPrice").value,
-                        description: document.getElementById("txtDesc").value
-                        // Lưu ý: Update API ở backend hiện đang chưa nhận subCategoryId. Sẽ cần chỉnh backend nếu muốn update cả mã loại
+                        description: document.getElementById("txtDesc").value,
+                        subCategoryId: document.getElementById("txtDmId").value
                     })
                 }).then(() => { alert("Cập nhật thành công!"); resetProductForm(); loadProducts(); });
             } else {

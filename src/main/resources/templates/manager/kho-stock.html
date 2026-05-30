@@ -43,8 +43,10 @@
             <legend style="font-weight: bold; color: #3b82f6; padding: 0 5px;">Thêm Hàng Hóa Bản Ghi</legend>
             <div class="form-row">
                 <div class="form-group" style="flex: 2;">
-                    <label>Mã Sản Phẩm / Nguyên Liệu</label>
-                    <input type="text" id="txtMasp" placeholder="Ví dụ: NL001, Good05">
+                    <label>Chọn Sản Phẩm / Nguyên Liệu</label>
+                    <select id="ddlGood">
+                        <option value="" disabled selected>Đang tải danh sách nguyên liệu...</option>
+                    </select>
                 </div>
                 <div class="form-group">
                     <label>Số Lượng Thao Tác</label>
@@ -70,21 +72,49 @@
     <script>
         // Mảng chứa danh sách hàng hóa đẩy xuống mảng TVP SQL
         let productItemsQueue = [];
+        let goodOptions = [];
+
+        async function loadGoodOptions() {
+            const select = document.getElementById("ddlGood");
+            try {
+                const res = await fetch('/public/NL');
+                if (!res.ok) throw new Error('Không tải được danh sách nguyên liệu');
+                const goods = await res.json();
+                goodOptions = Array.isArray(goods) ? goods : [];
+
+                if (goodOptions.length === 0) {
+                    select.innerHTML = '<option value="" disabled selected>Không có nguyên liệu nào.</option>';
+                    return;
+                }
+                select.innerHTML = '<option value="" disabled selected>Chọn nguyên liệu / sản phẩm...</option>';
+                goodOptions.forEach(good => {
+                    const id = good.goodId || good.GoodId || good.id || '';
+                    const name = good.goodName || good.GoodName || good.name || good.Name || 'Chưa rõ tên';
+                    const option = document.createElement('option');
+                    option.value = id;
+                    option.textContent = `${name} (${id})`;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                select.innerHTML = `<option value="" disabled selected>Lỗi tải nguyên liệu: ${error.message}</option>`;
+            }
+        }
 
         function addItemToList() {
-            const masp = document.getElementById("txtMasp").value.trim();
+            const ddl = document.getElementById("ddlGood");
+            const masp = ddl.value.trim();
+            const selectedText = ddl.options[ddl.selectedIndex]?.text || '';
             const soLuong = parseInt(document.getElementById("txtSoluong").value);
 
-            if(!masp) { alert("Vui lòng nhập mã sản phẩm!"); return; }
+            if(!masp) { alert("Vui lòng chọn sản phẩm hoặc nguyên liệu!"); return; }
             if(soLuong <= 0) { alert("Số lượng phải lớn hơn 0!"); return; }
 
-            // Thêm đối tượng khớp cấu trúc DTO: {masp, soLuong}
-            productItemsQueue.push({ masp: masp, soLuong: soLuong });
+            productItemsQueue.push({ masp: masp, soLuong: soLuong, displayName: selectedText });
             renderQueue();
 
-            // Reset input
-            document.getElementById("txtMasp").value = "";
-            document.getElementById("txtMasp").focus();
+            ddl.selectedIndex = 0;
+            document.getElementById("txtSoluong").value = 10;
+            ddl.focus();
         }
 
         function removeItem(index) {
@@ -100,9 +130,10 @@
             }
             container.innerHTML = "";
             productItemsQueue.forEach((item, index) => {
+                const label = item.displayName ? `${item.displayName}` : `<b>${item.masp}</b>`;
                 container.innerHTML += `
                     <div class="item-row">
-                        <span>📦 Mã hàng: <b>${item.masp}</b> — Số lượng: <span style="color:#0284c7;font-weight:bold;">${item.soLuong}</span></span>
+                        <span>📦 ${label} — Số lượng: <span style="color:#0284c7;font-weight:bold;">${item.soLuong}</span></span>
                         <span class="btn-del" onclick="removeItem(${index})">Xóa</span>
                     </div>
                 `;
@@ -129,14 +160,18 @@
                 return res.json();
             })
             .then(data => {
-                alert(`🎉 Tạo phiếu thành công!\nMã Phiếu Hệ Thống: ${data.RecordId}\nNgày nhập: ${data.AdmissionDate}`);
+                alert(`Tạo phiếu thành công!\nMã Phiếu Hệ Thống: ${data.RecordId}\nNgày nhập: ${data.AdmissionDate}`);
                 productItemsQueue = [];
                 renderQueue();
             })
             .catch(err => {
-                alert("❌ Thất bại: " + err.message);
+                alert("Thất bại: " + err.message);
             });
         }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            loadGoodOptions();
+        });
     </script>
 </body>
 </html>

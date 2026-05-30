@@ -3,7 +3,11 @@ package com.example.Admin.Controller.Public;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import com.example.Admin.Models.Category;
+import com.example.Admin.Models.Good;
 import com.example.Admin.Models.Product;
+import com.example.Admin.Models.Store;
+import com.example.Admin.Models.Sysrole;
 import com.example.Admin.Repositories.CategoryRepository;
 import com.example.Admin.Repositories.GoodRepository;
 import com.example.Admin.Repositories.ProductRepository;
@@ -133,9 +137,8 @@ public class PublicController {
         List<Map<String, Object>> responseItems = new ArrayList<>();
         paged.forEach(p -> {
             Map<String, Object> itemNew = new HashMap<>();
-            // 🛠️ ĐÃ FIX: Áp dụng hàm map DTO
             itemNew.put("Value", mapProductToDto(p));
-            itemNew.put("PathChiTiet", "/public/Product/" + p.getProductId());
+            itemNew.put("PathChiTiet", "/public/ProductDetail/" + p.getProductId());
             responseItems.add(itemNew);
         });
 
@@ -162,44 +165,28 @@ public class PublicController {
     // 4. GET /public/DanhMuc
     @GetMapping("/DanhMuc")
     public ResponseEntity<?> getAllCate() {
-        List<?> danhmucCha = categoryRepository.findAll();
+        List<Category> danhmucCha = categoryRepository.findAll();
         if (danhmucCha.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
 
         List<Map<String, Object>> danhMucRespones = new ArrayList<>();
-        
         danhmucCha.forEach(cha -> {
             Map<String, Object> chaMap = new HashMap<>();
-            try {
-                String categoryId = (String) cha.getClass().getMethod("getCategoryId").invoke(cha);
-                String categoryName = (String) cha.getClass().getMethod("getCategoryName").invoke(cha);
-                chaMap.put("MaLoaiDm", categoryId);
-                chaMap.put("ten", categoryName);
+            chaMap.put("MaLoaiDm", cha.getCategoryId());
+            chaMap.put("ten", cha.getCategoryName());
 
-                java.util.Collection<?> subCategories = null;
-                try {
-                    subCategories = (java.util.Collection<?>) cha.getClass().getMethod("getSubCategories").invoke(cha);
-                } catch (Exception es) {
-                    subCategories = (java.util.Collection<?>) cha.getClass().getMethod("getSubcategories").invoke(cha);
-                }
-
-                List<Map<String, Object>> subList = new ArrayList<>();
-                if (subCategories != null) {
-                    subCategories.forEach(con -> {
-                        Map<String, Object> conMap = new HashMap<>();
-                        try {
-                            String subName = (String) con.getClass().getMethod("getSubCategoryName").invoke(con);
-                            String subId = (String) con.getClass().getMethod("getSubCategory").invoke(con); // Lấy subCategory (Id)
-                            conMap.put("tenDM", subName);
-                            conMap.put("MaDm", subId);
-                        } catch (Exception e) {}
-                        subList.add(conMap);
-                    });
-                }
-                chaMap.put("danhMucCon", subList);
-                danhMucRespones.add(chaMap);
-            } catch (Exception e) {}
+            List<Map<String, Object>> subList = new ArrayList<>();
+            if (cha.getSubCategories() != null) {
+                cha.getSubCategories().forEach(sub -> {
+                    Map<String, Object> conMap = new HashMap<>();
+                    conMap.put("tenDM", sub.getSubCategoryName());
+                    conMap.put("MaDm", sub.getSubCategory());
+                    subList.add(conMap);
+                });
+            }
+            chaMap.put("danhMucCon", subList);
+            danhMucRespones.add(chaMap);
         });
 
         return ResponseEntity.ok(danhMucRespones);
@@ -208,24 +195,36 @@ public class PublicController {
     // 5. GET /public/NL
     @GetMapping("/NL")
     public ResponseEntity<?> allNl() {
-        return ResponseEntity.ok(goodRepository.findAll());
+        List<Good> goods = goodRepository.findAll();
+        if (goods.isEmpty()) {
+            return ResponseEntity.ok(List.of());
+        }
+
+        List<Map<String, Object>> response = new ArrayList<>();
+        goods.forEach(good -> {
+            Map<String, Object> dto = new HashMap<>();
+            dto.put("goodId", good.getGoodId());
+            dto.put("goodName", good.getGoodName());
+            dto.put("unitName", good.getUnitName());
+            response.add(dto);
+        });
+
+        return ResponseEntity.ok(response);
     }
 
     // 6. GET /public/Store
     @GetMapping("/Store")
     public ResponseEntity<?> getStore() {
-        List<?> stores = storeRepository.findAll();
+        List<Store> stores = storeRepository.findAll();
         if (stores.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
 
         List<Map<String, Object>> ls = new ArrayList<>();
-        stores.forEach(s -> {
+        stores.forEach(store -> {
             Map<String, Object> storeMap = new HashMap<>();
-            try {
-                storeMap.put("StoreId", s.getClass().getMethod("getStoreId").invoke(s));
-                storeMap.put("StoreName", s.getClass().getMethod("getStoreName").invoke(s));
-            } catch (Exception e) {}
+            storeMap.put("StoreId", store.getStoreId());
+            storeMap.put("StoreName", store.getStoreName());
             ls.add(storeMap);
         });
 
@@ -235,20 +234,16 @@ public class PublicController {
     // 7. GET /public/Roles
     @GetMapping("/Roles")
     public ResponseEntity<?> allRole() {
-        List<?> sysroles = sysRoleRepository.findAll();
+        List<Sysrole> sysroles = sysRoleRepository.findAll();
         List<Map<String, Object>> respone = new ArrayList<>();
 
         sysroles.forEach(role -> {
-            try {
-                String roleName = (String) role.getClass().getMethod("getRoleName").invoke(role);
-                if (roleName != null && !"Admin".equalsIgnoreCase(roleName)) {
-                    Map<String, Object> roleMap = new HashMap<>();
-                    String roleId = (String) role.getClass().getMethod("getRoleId").invoke(role);
-                    roleMap.put("roleId", roleId);
-                    roleMap.put("roleName", roleName);
-                    respone.add(roleMap);
-                }
-            } catch (Exception e) {}
+            if (role.getRoleName() != null && !"Admin".equalsIgnoreCase(role.getRoleName())) {
+                Map<String, Object> roleMap = new HashMap<>();
+                roleMap.put("roleId", role.getRoleId());
+                roleMap.put("roleName", role.getRoleName());
+                respone.add(roleMap);
+            }
         });
 
         if (respone.isEmpty()) {

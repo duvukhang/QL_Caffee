@@ -55,9 +55,23 @@ public class ProductController {
         Product existing = productRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm"));
         
-        if (updateData.containsKey("productName")) existing.setProductName(updateData.get("productName").toString());
-        if (updateData.containsKey("price")) existing.setPrice(new BigDecimal(updateData.get("price").toString()));
-        if (updateData.containsKey("description")) existing.setDescription(updateData.get("description").toString());
+        if (updateData.containsKey("productName")) {
+            existing.setProductName(updateData.get("productName").toString());
+        }
+        if (updateData.containsKey("price")) {
+            existing.setPrice(new BigDecimal(updateData.get("price").toString()));
+        }
+        if (updateData.containsKey("description")) {
+            existing.setDescription(updateData.get("description").toString());
+        }
+        if (updateData.containsKey("subCategoryId") || updateData.containsKey("dmid")) {
+            String subCatId = updateData.containsKey("subCategoryId") ? updateData.get("subCategoryId").toString() : updateData.get("dmid").toString();
+            if (subCatId != null && !subCatId.isBlank()) {
+                SubCategory sub = new SubCategory();
+                sub.setSubCategory(subCatId);
+                existing.setSubcategory(sub);
+            }
+        }
         
         productRepository.save(existing);
         return ResponseEntity.ok(Map.of("message", "Cập nhật thành công"));

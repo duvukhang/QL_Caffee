@@ -29,11 +29,14 @@
                     <div class="field"><label>Mật Khẩu Hệ Thống</label><input type="password" id="txtPassword" placeholder="Nhập để đặt mới"></div>
                     <div class="field"><label>Quyền Hạn (Role)</label>
                         <select id="ddlRole">
-                            <option value="Manager">Manager</option>
-                            <option value="Cashier">Cashier</option>
+                            <option value="">Đang tải...</option>
                         </select>
                     </div>
-                    <div class="field"><label>Chi Nhánh (Store ID)</label><input type="text" id="txtStoreId" value="ST01"></div>
+                    <div class="field"><label>Chi Nhánh (Store)</label>
+                        <select id="ddlStoreId">
+                            <option value="">Đang tải...</option>
+                        </select>
+                    </div>
                     <button type="button" class="btn btn-save" onclick="saveStaff()">LƯU THÔNG TIN NHÂN SỰ</button>
                     <button type="button" class="btn" style="background:#64748b; width:100%; margin-top:5px; display:none;" id="btnCancelEdit" onclick="cancelEditMode()">Hủy Chế Độ Sửa</button>
                 </form>
