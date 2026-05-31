@@ -20,6 +20,8 @@ public interface ShopOrderRepository extends JpaRepository<ShopOrder, Long>, Jpa
 
     List<ShopOrder> findTop10ByStatusOrderByCreatedAtDesc(ShopOrderStatus status);
 
+    boolean existsByOrderCode(String orderCode);
+
     long countByStatus(ShopOrderStatus status);
 
     @Query("select coalesce(sum(o.totalAmount), 0) from ShopOrder o where o.status = com.example.Admin.Shop.Model.ShopOrderStatus.COMPLETED")

@@ -301,6 +301,23 @@ public class ShopAdminController {
         return "redirect:/admin/orders";
     }
 
+    @PostMapping("/admin/orders/{id}/payment/confirm")
+    public String confirmManualBankPayment(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        ShopUser currentUser = currentUserService.requireUser();
+        if (!currentUser.getRole().canViewAllOrders()) {
+            redirectAttributes.addFlashAttribute("error", "Bạn không có quyền xác nhận thanh toán");
+            return "redirect:/admin/orders";
+        }
+        var order = orderRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        try {
+            orderService.confirmManualBankPayment(order);
+            redirectAttributes.addFlashAttribute("success", "Đã xác nhận đã nhận tiền chuyển khoản");
+        } catch (IllegalArgumentException ex) {
+            redirectAttributes.addFlashAttribute("error", ex.getMessage());
+        }
+        return "redirect:/admin/orders";
+    }
+
     @GetMapping("/admin/users")
     public String users(Model model) {
         model.addAttribute("users", userRepository.findByRole(ShopRole.CUSTOMER).stream()

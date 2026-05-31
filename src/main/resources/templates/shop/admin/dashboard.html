@@ -96,7 +96,7 @@
                     <td th:text="${order.user.fullName}">Khách</td>
                     <td th:text="${#temporals.format(order.createdAt, 'dd/MM/yyyy HH:mm')}">01/01/2026 08:00</td>
                     <td>
-                        <span class="badge" th:text="|${order.paymentMethod} / ${order.paymentStatus}|">COD / UNPAID</span>
+                        <span class="badge" th:text="|${@shopLabels.label(order.paymentMethod)} / ${@shopLabels.label(order.paymentStatus)}|">COD / UNPAID</span>
                     </td>
                     <td th:text="${#numbers.formatDecimal(order.totalAmount,0,'COMMA',0,'POINT')} + ' đ'">0 đ</td>
                 </tr>

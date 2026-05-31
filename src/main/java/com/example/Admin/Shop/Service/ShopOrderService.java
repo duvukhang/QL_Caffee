@@ -58,20 +58,26 @@ public class ShopOrderService {
             throw new IllegalArgumentException(quote.message());
         }
 
+        PaymentMethod selectedPaymentMethod = paymentMethod == null ? PaymentMethod.COD : paymentMethod;
         ShopOrder order = new ShopOrder();
-        order.setOrderCode("DH" + DateTimeFormatter.ofPattern("yyyyMMddHHmmss").format(LocalDateTime.now()));
+        order.setOrderCode(nextOrderCode());
         order.setUser(user);
         order.setReceiverName(receiverName);
         order.setReceiverPhone(receiverPhone);
         order.setShippingAddress(shippingAddress);
-        order.setPaymentMethod(paymentMethod == null ? PaymentMethod.COD : paymentMethod);
-        if (order.getPaymentMethod() == PaymentMethod.COD) {
+        order.setPaymentMethod(selectedPaymentMethod);
+        if (selectedPaymentMethod == PaymentMethod.COD) {
             order.setPaymentStatus(PaymentStatus.UNPAID);
+            order.setStatus(ShopOrderStatus.PENDING);
+        } else if (selectedPaymentMethod == PaymentMethod.BANK_QR_MANUAL) {
+            order.setPaymentStatus(PaymentStatus.PENDING);
+            order.setPaymentReference(order.getOrderCode());
+            order.setStatus(ShopOrderStatus.PENDING_PAYMENT);
         } else {
             order.setPaymentStatus(PaymentStatus.PENDING);
             order.setPaymentReference("PAY" + DateTimeFormatter.ofPattern("yyyyMMddHHmmss").format(LocalDateTime.now()));
+            order.setStatus(ShopOrderStatus.PENDING);
         }
-        order.setStatus(ShopOrderStatus.PENDING);
         order.setSubtotal(subtotal);
         order.setDiscountAmount(quote.discountAmount());
         order.setTotalAmount(quote.totalAmount());
@@ -110,7 +116,7 @@ public class ShopOrderService {
             throw new IllegalArgumentException("Bạn không có quyền hủy đơn này");
         }
         if (!order.isCancelableByCustomer()) {
-            throw new IllegalArgumentException("Chỉ được hủy đơn khi đang chờ xác nhận");
+            throw new IllegalArgumentException("Chỉ được hủy đơn khi đang chờ xác nhận hoặc chờ thanh toán");
         }
         cancel(order);
     }
@@ -120,8 +126,8 @@ public class ShopOrderService {
         if (order.getStatus() == ShopOrderStatus.CANCELLED) {
             return;
         }
-        if (order.getStatus() != ShopOrderStatus.PENDING) {
-            throw new IllegalArgumentException("Chỉ được hủy đơn đang chờ xác nhận");
+        if (order.getStatus() != ShopOrderStatus.PENDING && order.getStatus() != ShopOrderStatus.PENDING_PAYMENT) {
+            throw new IllegalArgumentException("Chỉ được hủy đơn đang chờ xác nhận hoặc chờ thanh toán");
         }
         restoreStock(order);
         order.setStatus(ShopOrderStatus.CANCELLED);
@@ -134,8 +140,11 @@ public class ShopOrderService {
                 && nextStatus != ShopOrderStatus.CANCELLED) {
             throw new IllegalArgumentException("Đơn online phải thanh toán thành công trước khi xử lý");
         }
-        List<ShopOrderStatus> flow = List.of(ShopOrderStatus.PENDING, ShopOrderStatus.CONFIRMED,
-                ShopOrderStatus.SHIPPING, ShopOrderStatus.COMPLETED);
+        List<ShopOrderStatus> flow = order.getStatus() == ShopOrderStatus.PENDING_PAYMENT
+                ? List.of(ShopOrderStatus.PENDING_PAYMENT, ShopOrderStatus.CONFIRMED,
+                        ShopOrderStatus.SHIPPING, ShopOrderStatus.COMPLETED)
+                : List.of(ShopOrderStatus.PENDING, ShopOrderStatus.CONFIRMED,
+                        ShopOrderStatus.SHIPPING, ShopOrderStatus.COMPLETED);
         if (nextStatus == ShopOrderStatus.CANCELLED) {
             cancel(order);
             return;
@@ -150,34 +159,35 @@ public class ShopOrderService {
     }
 
     @Transactional
-    public void confirmOnlinePayment(ShopOrder order, ShopUser user) {
-        ensureOwner(order, user);
-        if (order.getPaymentMethod() == PaymentMethod.COD) {
-            throw new IllegalArgumentException("Đơn COD không cần thanh toán online");
+    public void confirmManualBankPayment(ShopOrder order) {
+        if (order.getPaymentMethod() != PaymentMethod.BANK_QR_MANUAL) {
+            throw new IllegalArgumentException("Chỉ xác nhận thủ công cho đơn chuyển khoản QR");
         }
         if (order.getStatus() == ShopOrderStatus.CANCELLED) {
             throw new IllegalArgumentException("Đơn đã hủy");
         }
+        if (order.getPaymentStatus() == PaymentStatus.PAID) {
+            return;
+        }
+        if (order.getPaymentStatus() != PaymentStatus.PENDING) {
+            throw new IllegalArgumentException("Chỉ xác nhận đơn đang chờ thanh toán");
+        }
         order.setPaymentStatus(PaymentStatus.PAID);
         order.setPaidAt(LocalDateTime.now());
+        order.setStatus(ShopOrderStatus.CONFIRMED);
         orderRepository.save(order);
+    }
+
+    @Transactional
+    public void confirmOnlinePayment(ShopOrder order, ShopUser user) {
+        ensureOwner(order, user);
+        throw new IllegalArgumentException("Khách hàng không được tự xác nhận thanh toán");
     }
 
     @Transactional
     public void failOnlinePayment(ShopOrder order, ShopUser user) {
         ensureOwner(order, user);
-        if (order.getPaymentMethod() == PaymentMethod.COD) {
-            throw new IllegalArgumentException("Đơn COD không dùng bước này");
-        }
-        if (order.getPaymentStatus() == PaymentStatus.PAID) {
-            throw new IllegalArgumentException("Đơn đã thanh toán thành công");
-        }
-        order.setPaymentStatus(PaymentStatus.FAILED);
-        if (order.getStatus() == ShopOrderStatus.PENDING) {
-            restoreStock(order);
-            order.setStatus(ShopOrderStatus.CANCELLED);
-        }
-        orderRepository.save(order);
+        throw new IllegalArgumentException("Khách hàng không được tự đổi trạng thái thanh toán");
     }
 
     public boolean canReview(Long userId, Long productId) {
@@ -198,6 +208,15 @@ public class ShopOrderService {
         if (!order.getUser().getId().equals(user.getId())) {
             throw new IllegalArgumentException("Bạn không có quyền thao tác đơn này");
         }
+    }
+
+    private String nextOrderCode() {
+        long nextNumber = orderRepository.count() + 1;
+        String orderCode;
+        do {
+            orderCode = "QLCF" + String.format("%06d", nextNumber++);
+        } while (orderRepository.existsByOrderCode(orderCode));
+        return orderCode;
     }
 
     private ShopInventoryHistory history(ShopProduct product, InventoryHistoryType type, int quantity, String note) {

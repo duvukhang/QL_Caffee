@@ -43,7 +43,7 @@ $env:DB_PASSWORD="123123"
 .\mvnw.cmd spring-boot:run
 ```
 
-Mở: `http://localhost:8082`
+Mở: `http://localhost:8088`
 
 ## Tài khoản mẫu
 
@@ -57,6 +57,13 @@ Mở: `http://localhost:8082`
 - Admin: dashboard, quản lý danh mục, sản phẩm, tồn kho, coupon, gán coupon riêng cho khách, đơn hàng, người dùng, duyệt/xóa đánh giá.
 - Database: dùng `StoreManagement1`, Hibernate tự sinh/cập nhật bảng `shop_*`, seed dữ liệu mẫu bằng `DataInitializer`.
 - Coupon mẫu: `SALE10`, `GIAM50K`, `VIP20`, `EXPIRED10`.
+
+## Thanh toán QR local
+
+- Checkout hỗ trợ `COD` và `BANK_QR_MANUAL` (`Chuyển khoản QR`).
+- Khi khách chọn chuyển khoản QR, hệ thống tạo đơn với trạng thái thanh toán `Chờ thanh toán`, hiển thị mã đơn dạng `QLCF000001` làm nội dung chuyển khoản bắt buộc và QR tĩnh tại `src/main/resources/static/img/payment/qr-bank.png`.
+- Vì chạy local cho đồ án nên thanh toán QR dùng cơ chế admin xác nhận thủ công trong trang quản lý đơn hàng.
+- Khi deploy thật có thể tích hợp payOS/SePay webhook để tự động xác nhận giao dịch.
 
 ## Ghi chú kỹ thuật
 

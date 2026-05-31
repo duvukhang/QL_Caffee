@@ -158,12 +158,33 @@ public class Program {
                     IF COL_LENGTH(N'dbo.shop_orders', N'paymentStatus') IS NULL ALTER TABLE dbo.shop_orders ADD paymentStatus VARCHAR(30) NOT NULL CONSTRAINT df_shop_orders_paymentStatus DEFAULT 'UNPAID';
                     IF COL_LENGTH(N'dbo.shop_orders', N'paymentReference') IS NULL ALTER TABLE dbo.shop_orders ADD paymentReference NVARCHAR(80) NULL;
                     IF COL_LENGTH(N'dbo.shop_orders', N'paidAt') IS NULL ALTER TABLE dbo.shop_orders ADD paidAt DATETIME2 NULL;
+
+                    DECLARE @dropOrderChecks NVARCHAR(MAX) = N'';
+                    SELECT @dropOrderChecks = @dropOrderChecks + N'ALTER TABLE dbo.shop_orders DROP CONSTRAINT ' + QUOTENAME(cc.name) + N';'
+                    FROM sys.check_constraints cc
+                    JOIN sys.tables t ON cc.parent_object_id = t.object_id
+                    JOIN sys.schemas s ON t.schema_id = s.schema_id
+                    WHERE s.name = N'dbo'
+                      AND t.name = N'shop_orders'
+                      AND (
+                          cc.definition LIKE N'%paymentMethod%'
+                          OR cc.definition LIKE N'%paymentStatus%'
+                          OR cc.definition LIKE N'%status%'
+                      );
+                    IF @dropOrderChecks <> N'' EXEC sp_executesql @dropOrderChecks;
+
                     IF COL_LENGTH(N'dbo.shop_orders', N'orderCode') IS NOT NULL ALTER TABLE dbo.shop_orders ALTER COLUMN orderCode NVARCHAR(40) NOT NULL;
                     IF COL_LENGTH(N'dbo.shop_orders', N'receiverName') IS NOT NULL ALTER TABLE dbo.shop_orders ALTER COLUMN receiverName NVARCHAR(120) NOT NULL;
                     IF COL_LENGTH(N'dbo.shop_orders', N'receiverPhone') IS NOT NULL ALTER TABLE dbo.shop_orders ALTER COLUMN receiverPhone NVARCHAR(20) NOT NULL;
                     IF COL_LENGTH(N'dbo.shop_orders', N'shippingAddress') IS NOT NULL ALTER TABLE dbo.shop_orders ALTER COLUMN shippingAddress NVARCHAR(300) NOT NULL;
+                    IF COL_LENGTH(N'dbo.shop_orders', N'paymentMethod') IS NOT NULL ALTER TABLE dbo.shop_orders ALTER COLUMN paymentMethod VARCHAR(30) NOT NULL;
+                    IF COL_LENGTH(N'dbo.shop_orders', N'paymentStatus') IS NOT NULL ALTER TABLE dbo.shop_orders ALTER COLUMN paymentStatus VARCHAR(30) NOT NULL;
+                    IF COL_LENGTH(N'dbo.shop_orders', N'status') IS NOT NULL ALTER TABLE dbo.shop_orders ALTER COLUMN status VARCHAR(30) NOT NULL;
                     IF COL_LENGTH(N'dbo.shop_orders', N'paymentReference') IS NOT NULL ALTER TABLE dbo.shop_orders ALTER COLUMN paymentReference NVARCHAR(80) NULL;
                     IF OBJECT_ID(N'dbo.uk_shop_orders_order_code', N'UQ') IS NULL AND COL_LENGTH(N'dbo.shop_orders', N'orderCode') IS NOT NULL ALTER TABLE dbo.shop_orders ADD CONSTRAINT uk_shop_orders_order_code UNIQUE (orderCode);
+                    IF OBJECT_ID(N'dbo.ck_shop_orders_payment_method', N'C') IS NULL AND COL_LENGTH(N'dbo.shop_orders', N'paymentMethod') IS NOT NULL ALTER TABLE dbo.shop_orders ADD CONSTRAINT ck_shop_orders_payment_method CHECK (paymentMethod IN ('COD', 'BANK_QR_MANUAL', 'WALLET', 'CARD'));
+                    IF OBJECT_ID(N'dbo.ck_shop_orders_payment_status', N'C') IS NULL AND COL_LENGTH(N'dbo.shop_orders', N'paymentStatus') IS NOT NULL ALTER TABLE dbo.shop_orders ADD CONSTRAINT ck_shop_orders_payment_status CHECK (paymentStatus IN ('UNPAID', 'PENDING', 'PAID', 'FAILED'));
+                    IF OBJECT_ID(N'dbo.ck_shop_orders_status', N'C') IS NULL AND COL_LENGTH(N'dbo.shop_orders', N'status') IS NOT NULL ALTER TABLE dbo.shop_orders ADD CONSTRAINT ck_shop_orders_status CHECK (status IN ('PENDING_PAYMENT', 'PENDING', 'CONFIRMED', 'SHIPPING', 'COMPLETED', 'CANCELLED'));
                 END
                 """,
                 """

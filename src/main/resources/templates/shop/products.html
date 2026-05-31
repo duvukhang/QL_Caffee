@@ -95,7 +95,7 @@
                             <a class="btn secondary small" th:href="@{/products/{id}(id=${product.id})}">Chi tiết</a>
                             <button class="btn secondary small" type="button"
                                     th:attr="data-name=${product.name},data-price=${#numbers.formatDecimal(product.effectivePrice,0,'COMMA',0,'POINT')},data-img=${product.mainImagePath},data-desc=${product.description}"
-                                    onclick="quickView(this)">Xem nhanh</button>
+                                    onclick="quickView(this)">Xem</button>
                             <form th:action="@{/cart/add}" method="post">
                                 <input type="hidden" name="productId" th:value="${product.id}">
                                 <button class="btn small" type="submit" th:disabled="${product.quantity <= 0}"

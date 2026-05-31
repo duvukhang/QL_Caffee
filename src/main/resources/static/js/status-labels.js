@@ -1,6 +1,7 @@
 (function () {
   var labels = {
     PENDING: "Chờ xác nhận",
+    PENDING_PAYMENT: "Chờ thanh toán",
     WAITING_CONFIRMATION: "Chờ xác nhận",
     CONFIRMED: "Đã xác nhận",
     SHIPPING: "Đang giao",
@@ -13,6 +14,7 @@
     PAID: "Đã thanh toán",
     FAILED: "Thanh toán thất bại",
     COD: "Thanh toán khi nhận hàng",
+    BANK_QR_MANUAL: "Chuyển khoản QR",
     CARD: "Thẻ ngân hàng",
     WALLET: "Ví điện tử",
     E_WALLET: "Ví điện tử",

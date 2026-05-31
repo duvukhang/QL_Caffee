@@ -2,6 +2,10 @@ package com.example.Admin.Shop.Util;
 
 import org.springframework.stereotype.Component;
 
+import com.example.Admin.Shop.Model.PaymentMethod;
+import com.example.Admin.Shop.Model.PaymentStatus;
+import com.example.Admin.Shop.Model.ShopOrderStatus;
+
 @Component("shopLabels")
 public class ShopLabelHelper {
 
@@ -9,19 +13,40 @@ public class ShopLabelHelper {
         if (value == null) {
             return "Chưa có";
         }
+        if (value instanceof PaymentStatus status) {
+            return switch (status) {
+                case UNPAID -> "Chưa thanh toán";
+                case PENDING -> "Chờ thanh toán";
+                case PAID -> "Đã thanh toán";
+                case FAILED -> "Thanh toán thất bại";
+            };
+        }
+        if (value instanceof PaymentMethod method) {
+            return switch (method) {
+                case COD -> "Thanh toán khi nhận hàng";
+                case BANK_QR_MANUAL -> "Chuyển khoản QR";
+                case CARD -> "Thẻ ngân hàng";
+                case WALLET -> "Ví điện tử";
+            };
+        }
+        if (value instanceof ShopOrderStatus status) {
+            return switch (status) {
+                case PENDING_PAYMENT -> "Chờ thanh toán";
+                case PENDING -> "Chờ xác nhận";
+                case CONFIRMED -> "Đã xác nhận";
+                case SHIPPING -> "Đang giao";
+                case COMPLETED -> "Hoàn thành";
+                case CANCELLED -> "Đã hủy";
+            };
+        }
+
         String key = value.toString();
         return switch (key) {
-            case "PENDING", "WAITING_CONFIRMATION" -> "Chờ xác nhận";
-            case "CONFIRMED" -> "Đã xác nhận";
-            case "SHIPPING", "DELIVERING" -> "Đang giao";
-            case "COMPLETED", "DELIVERED" -> "Hoàn thành";
-            case "CANCELLED", "CANCELED" -> "Đã hủy";
-            case "UNPAID" -> "Chưa thanh toán";
-            case "PAID" -> "Đã thanh toán";
-            case "FAILED" -> "Thanh toán thất bại";
-            case "COD" -> "Thanh toán khi nhận hàng";
-            case "CARD" -> "Thẻ ngân hàng";
-            case "E_WALLET", "WALLET" -> "Ví điện tử";
+            case "WAITING_CONFIRMATION" -> "Chờ xác nhận";
+            case "DELIVERING" -> "Đang giao";
+            case "DELIVERED" -> "Hoàn thành";
+            case "CANCELED" -> "Đã hủy";
+            case "E_WALLET" -> "Ví điện tử";
             case "ACTIVE" -> "Đang hoạt động";
             case "INACTIVE" -> "Ngừng hoạt động";
             case "APPROVED" -> "Đã duyệt";
@@ -31,6 +56,7 @@ public class ShopLabelHelper {
             case "FIXED_AMOUNT" -> "Giảm số tiền";
             case "IMPORT" -> "Nhập kho";
             case "EXPORT" -> "Xuất kho";
+            case "ORDER_CANCEL" -> "Hoàn kho đơn hủy";
             case "CUSTOMER" -> "Khách hàng";
             case "STAFF" -> "Nhân viên";
             case "ADMIN" -> "Quản trị viên";
@@ -45,7 +71,7 @@ public class ShopLabelHelper {
             return "status-muted";
         }
         return switch (value.toString()) {
-            case "PENDING", "WAITING_CONFIRMATION" -> "status-pending";
+            case "PENDING", "PENDING_PAYMENT", "WAITING_CONFIRMATION" -> "status-pending";
             case "CONFIRMED" -> "status-confirmed";
             case "SHIPPING", "DELIVERING" -> "status-shipping";
             case "COMPLETED", "DELIVERED", "PAID", "ACTIVE", "APPROVED" -> "status-success";

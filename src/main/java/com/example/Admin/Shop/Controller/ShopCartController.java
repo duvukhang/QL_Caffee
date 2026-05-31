@@ -1,6 +1,7 @@
 package com.example.Admin.Shop.Controller;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.regex.Pattern;
 
 import org.springframework.http.HttpStatus;
@@ -121,7 +122,7 @@ public class ShopCartController {
         model.addAttribute("subtotal", subtotal);
         model.addAttribute("couponCode", couponCode);
         model.addAttribute("couponQuote", couponService.quote(couponCode, user, subtotal));
-        model.addAttribute("paymentMethods", PaymentMethod.values());
+        model.addAttribute("paymentMethods", List.of(PaymentMethod.COD, PaymentMethod.BANK_QR_MANUAL));
         return "shop/checkout";
     }
 
@@ -146,8 +147,8 @@ public class ShopCartController {
             var order = orderService.placeOrder(currentUserService.requireUser(), receiverName.trim(), receiverPhone.trim(),
                     shippingAddress.trim(), paymentMethod, couponCode);
             session.removeAttribute(COUPON_SESSION_KEY);
-            if (order.getPaymentMethod() != PaymentMethod.COD) {
-                redirectAttributes.addFlashAttribute("success", "Vui lòng hoàn tất thanh toán online");
+            if (order.getPaymentMethod() == PaymentMethod.BANK_QR_MANUAL) {
+                redirectAttributes.addFlashAttribute("success", "Đơn hàng đã được tạo. Vui lòng chuyển khoản theo mã QR.");
                 return "redirect:/payments/" + order.getId();
             }
             redirectAttributes.addFlashAttribute("success", "Đặt hàng thành công");

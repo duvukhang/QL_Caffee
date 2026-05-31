@@ -105,6 +105,6 @@ public class ShopOrder {
     }
 
     public boolean isCancelableByCustomer() {
-        return status == ShopOrderStatus.PENDING;
+        return status == ShopOrderStatus.PENDING || status == ShopOrderStatus.PENDING_PAYMENT;
     }
 }

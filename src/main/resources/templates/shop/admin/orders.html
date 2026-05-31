@@ -55,6 +55,12 @@
                     </td>
                     <td><span th:class="${'badge ' + @shopLabels.orderBadgeClass(order.status)}" th:text="${@shopLabels.label(order.status)}">Chờ xác nhận</span></td>
                     <td>
+                        <form th:if="${order.paymentMethod == T(com.example.Admin.Shop.Model.PaymentMethod).BANK_QR_MANUAL and order.paymentStatus == T(com.example.Admin.Shop.Model.PaymentStatus).PENDING}"
+                              th:action="@{/admin/orders/{id}/payment/confirm(id=${order.id})}" method="post"
+                              class="admin-payment-confirm"
+                              data-confirm="Bạn có chắc đã nhận tiền chuyển khoản cho đơn hàng này?">
+                            <button class="btn small" type="submit">Xác nhận đã nhận tiền</button>
+                        </form>
                         <form th:action="@{/admin/orders/{id}/status(id=${order.id})}" method="post"
                               class="inline-form admin-status-form"
                               data-confirm="Bạn có chắc muốn cập nhật trạng thái đơn hàng này?">

@@ -985,7 +985,7 @@ label {
 
 .admin-orders-table th:nth-child(7),
 .admin-orders-table td:nth-child(7) {
-  width: 190px;
+  width: 220px;
 }
 
 .admin-order-code {
@@ -1018,6 +1018,108 @@ label {
   flex: 0 0 auto;
 }
 
+.admin-payment-confirm {
+  margin-bottom: 8px;
+}
+
+.admin-payment-confirm .btn {
+  width: 100%;
+  white-space: normal;
+}
+
+.qr-payment-grid {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.9fr) minmax(0, 1.1fr);
+  gap: 22px;
+  align-items: stretch;
+}
+
+.qr-payment-card {
+  display: grid;
+  gap: 16px;
+  align-content: start;
+  background:
+    linear-gradient(160deg, rgba(111, 78, 55, 0.11), rgba(255, 250, 245, 0.96) 44%),
+    #ffffff;
+}
+
+.qr-image-frame {
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(111, 78, 55, 0.18);
+  border-radius: var(--radius);
+  padding: clamp(14px, 4vw, 28px);
+  background: #fffaf5;
+}
+
+.bank-qr-image {
+  width: min(320px, 100%);
+  aspect-ratio: 1;
+  object-fit: contain;
+  border-radius: 6px;
+  background: #ffffff;
+  box-shadow: 0 12px 28px rgba(62, 39, 35, 0.12);
+}
+
+.qr-payment-note {
+  display: grid;
+  gap: 8px;
+  border-radius: var(--radius);
+  padding: 14px;
+  background: rgba(245, 230, 211, 0.68);
+  color: var(--coffee-dark);
+}
+
+.qr-payment-note strong {
+  font-size: 0.96rem;
+}
+
+.qr-payment-info h2 {
+  margin-top: 0;
+  color: var(--coffee-dark);
+}
+
+.payment-detail-list {
+  display: grid;
+  gap: 0;
+  margin: 0;
+}
+
+.payment-detail-list > div {
+  display: grid;
+  grid-template-columns: minmax(140px, 0.42fr) minmax(0, 1fr);
+  gap: 14px;
+  padding: 12px 0;
+  border-bottom: 1px dashed var(--line);
+}
+
+.payment-detail-list > div:last-child {
+  border-bottom: 0;
+}
+
+.payment-detail-list dt {
+  color: var(--muted);
+  font-weight: 750;
+}
+
+.payment-detail-list dd {
+  margin: 0;
+  color: var(--text);
+  font-weight: 820;
+  overflow-wrap: anywhere;
+}
+
+code {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 2px 7px;
+  background: #fffdfa;
+  color: var(--coffee-dark);
+  font-family: "Cascadia Mono", Consolas, monospace;
+  font-size: 0.94em;
+  font-weight: 850;
+}
+
 dialog {
   width: min(620px, calc(100% - 28px));
   border: 0;
@@ -1036,25 +1138,6 @@ dialog::backdrop {
   background: #fffdfa;
 }
 
-.qr-demo {
-  width: min(240px, 100%);
-  margin: 18px 0;
-  border: 1px dashed var(--line);
-  border-radius: var(--radius);
-  padding: 16px;
-  text-align: center;
-  background: #fffaf5;
-}
-
-.qr-pattern {
-  width: 164px;
-  height: 164px;
-  margin: 0 auto;
-  border: 12px solid #ffffff;
-  background: repeating-linear-gradient(45deg, #221713 0 8px, #fff 8px 16px);
-  box-shadow: 0 0 0 1px var(--line);
-}
-
 @media (max-width: 980px) {
   .hero {
     min-height: 430px;
@@ -1065,7 +1148,8 @@ dialog::backdrop {
   .detail,
   .admin-shell,
   .cart-shell,
-  .checkout-grid {
+  .checkout-grid,
+  .qr-payment-grid {
     grid-template-columns: 1fr;
   }
 
@@ -1145,6 +1229,11 @@ dialog::backdrop {
 
   .table {
     min-width: 650px;
+  }
+
+  .payment-detail-list > div {
+    grid-template-columns: 1fr;
+    gap: 4px;
   }
 }
 
