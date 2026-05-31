@@ -24,8 +24,10 @@ public class ShopUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        ShopUser user = userRepository.findByUsernameIgnoreCase(username)
-                .or(() -> userRepository.findByEmailIgnoreCase(username))
+        String login = username == null ? "" : username.trim();
+        ShopUser user = userRepository.findByUsernameIgnoreCase(login)
+                .or(() -> userRepository.findByEmailIgnoreCase(login))
+                .or(() -> userRepository.findFirstByPhoneOrderByIdAsc(login))
                 .orElseThrow(() -> new UsernameNotFoundException("Không tìm thấy tài khoản"));
 
         return User.withUsername(user.getUsername())
@@ -46,6 +48,8 @@ public class ShopUserDetailsService implements UserDetailsService {
             authorities.add(new SimpleGrantedAuthority("Admin"));
         } else if (role == ShopRole.MANAGER) {
             authorities.add(new SimpleGrantedAuthority("Manager"));
+        } else if (role == ShopRole.STAFF) {
+            authorities.add(new SimpleGrantedAuthority("Staff"));
         } else if (role == ShopRole.CUSTOMER) {
             authorities.add(new SimpleGrantedAuthority("Customer"));
         }

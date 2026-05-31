@@ -15,7 +15,7 @@
         <div class="section-title">
             <div>
                 <p class="section-kicker">Quản lý</p>
-                <h1>Đơn hàng</h1>
+                <h1 th:text="${orderPageTitle}">Đơn hàng</h1>
             </div>
         </div>
         <form class="panel inline-form admin-filter-form" th:action="@{/admin/orders}" method="get" data-auto-submit="true">

@@ -13,11 +13,17 @@ public interface ShopUserRepository extends JpaRepository<ShopUser, Long> {
 
     Optional<ShopUser> findByEmailIgnoreCase(String email);
 
+    Optional<ShopUser> findFirstByPhoneOrderByIdAsc(String phone);
+
     boolean existsByUsernameIgnoreCase(String username);
 
     boolean existsByEmailIgnoreCase(String email);
 
+    boolean existsByPhone(String phone);
+
     long countByRole(ShopRole role);
 
     List<ShopUser> findByRole(ShopRole role);
+
+    List<ShopUser> findByRoleIn(List<ShopRole> roles);
 }

@@ -45,7 +45,7 @@
                       th:text="${@shopLabels.label(order.paymentStatus)}"></span>
             </p>
             <p th:if="${order.paymentReference != null}"><strong>Mã giao dịch:</strong> <span th:text="${order.paymentReference}"></span></p>
-            <div th:if="${order.paymentMethod != T(com.example.Admin.Shop.Model.PaymentMethod).COD and order.paymentStatus == T(com.example.Admin.Shop.Model.PaymentStatus).PENDING}" class="actions">
+            <div th:if="${currentShopUser.role == T(com.example.Admin.Shop.Model.ShopRole).CUSTOMER and order.paymentMethod != T(com.example.Admin.Shop.Model.PaymentMethod).COD and order.paymentStatus == T(com.example.Admin.Shop.Model.PaymentStatus).PENDING}" class="actions">
                 <a class="btn" th:href="@{/payments/{id}(id=${order.id})}">Tiếp tục thanh toán</a>
             </div>
             <div class="summary-row">

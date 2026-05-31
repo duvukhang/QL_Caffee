@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tài khoản - QL Caffee</title>
+    <link rel="stylesheet" th:href="@{/css/shop.css}">
+</head>
+<body>
+<div th:replace="~{shop/fragments :: topbar}"></div>
+<div th:replace="~{shop/fragments :: flash}"></div>
+<main class="container">
+    <div class="section-title">
+        <div>
+            <p class="section-kicker">Tài khoản</p>
+            <h1>Thông tin cá nhân</h1>
+        </div>
+        <span class="badge" th:text="${@shopLabels.label(accountUser.role)}">Vai trò</span>
+    </div>
+    <div class="grid grid-2">
+        <form class="panel" th:action="@{/account}" method="post">
+            <div class="form-row">
+                <div>
+                    <label>Username</label>
+                    <input class="form-control" th:value="${accountUser.username}" disabled>
+                </div>
+                <div>
+                    <label>Họ tên</label>
+                    <input class="form-control" name="fullName" th:value="${accountUser.fullName}" required>
+                </div>
+            </div>
+            <div class="form-row">
+                <div>
+                    <label>Email</label>
+                    <input class="form-control" type="email" name="email" th:value="${accountUser.email}" required>
+                </div>
+                <div>
+                    <label>Số điện thoại</label>
+                    <input class="form-control" name="phone" th:value="${accountUser.phone}" pattern="\d{10,11}">
+                </div>
+            </div>
+            <div class="field">
+                <label>Địa chỉ</label>
+                <input class="form-control" name="address" th:value="${accountUser.address}">
+            </div>
+            <div class="actions">
+                <button class="btn" type="submit">Lưu thông tin</button>
+            </div>
+        </form>
+
+        <form class="panel" th:action="@{/account/password}" method="post">
+            <h2>Đổi mật khẩu</h2>
+            <div class="field">
+                <label>Mật khẩu hiện tại</label>
+                <div class="password-input">
+                    <input class="form-control" type="password" name="currentPassword" required autocomplete="current-password">
+                    <button class="password-toggle" type="button" data-password-toggle>Hiện</button>
+                </div>
+            </div>
+            <div class="field">
+                <label>Mật khẩu mới</label>
+                <div class="password-input">
+                    <input class="form-control" type="password" name="newPassword" required minlength="6" autocomplete="new-password">
+                    <button class="password-toggle" type="button" data-password-toggle>Hiện</button>
+                </div>
+            </div>
+            <div class="actions">
+                <button class="btn secondary" type="submit">Đổi mật khẩu</button>
+            </div>
+        </form>
+    </div>
+</main>
+</body>
+</html>

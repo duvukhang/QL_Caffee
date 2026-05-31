@@ -112,6 +112,24 @@
     filterTable(input);
   }
 
+  function setupPasswordToggles() {
+    document.querySelectorAll("[data-password-toggle]").forEach(function (button) {
+      var wrapper = button.closest(".password-input");
+      var input = wrapper ? wrapper.querySelector("input[type='password'], input[type='text']") : null;
+      if (!input) {
+        return;
+      }
+
+      button.addEventListener("click", function () {
+        var showing = input.type === "text";
+        input.type = showing ? "password" : "text";
+        button.textContent = showing ? "Hiện" : "Ẩn";
+        button.setAttribute("aria-label", showing ? "Hiện mật khẩu" : "Ẩn mật khẩu");
+      });
+      button.setAttribute("aria-label", "Hiện mật khẩu");
+    });
+  }
+
   window.quickView = function (button) {
     var dialog = document.getElementById("quickViewDialog");
     if (!dialog) {
@@ -160,6 +178,7 @@
       });
     });
     setupConfirmations();
+    setupPasswordToggles();
     document.querySelectorAll("input[data-table-search]").forEach(enhanceTableSearch);
   });
 })();

@@ -58,6 +58,10 @@ public class ShopAuthController {
             redirectAttributes.addFlashAttribute("error", "Email đã tồn tại");
             return "redirect:/register";
         }
+        if (phone != null && !phone.isBlank() && userRepository.existsByPhone(phone.trim())) {
+            redirectAttributes.addFlashAttribute("error", "Số điện thoại đã tồn tại");
+            return "redirect:/register";
+        }
 
         ShopUser user = new ShopUser();
         user.setUsername(username.trim());

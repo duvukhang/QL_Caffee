@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nhân viên</title>
+    <link rel="stylesheet" th:href="@{/css/shop.css}">
+</head>
+<body>
+<div th:replace="~{shop/fragments :: topbar}"></div>
+<div th:replace="~{shop/fragments :: flash}"></div>
+<main class="container admin-shell">
+    <div th:replace="~{shop/fragments :: adminNav}"></div>
+    <section>
+        <div class="section-title">
+            <div>
+                <p class="section-kicker">Quản lý</p>
+                <h1>Nhân viên</h1>
+            </div>
+        </div>
+
+        <form class="panel" th:action="@{/admin/staff}" method="post">
+            <div class="form-row">
+                <div>
+                    <label>Username</label>
+                    <input class="form-control" name="username" required minlength="3" autocomplete="username">
+                </div>
+                <div>
+                    <label>Họ tên</label>
+                    <input class="form-control" name="fullName" required autocomplete="name">
+                </div>
+            </div>
+            <div class="form-row">
+                <div>
+                    <label>Email</label>
+                    <input class="form-control" type="email" name="email" required autocomplete="email">
+                </div>
+                <div>
+                    <label>Số điện thoại</label>
+                    <input class="form-control" name="phone" required pattern="\d{10,11}" autocomplete="tel">
+                </div>
+            </div>
+            <div class="form-row">
+                <div>
+                    <label>Mật khẩu</label>
+                    <div class="password-input">
+                        <input class="form-control" type="password" name="password" required minlength="6" autocomplete="new-password">
+                        <button class="password-toggle" type="button" data-password-toggle>Hiện</button>
+                    </div>
+                </div>
+                <div>
+                    <label>Vai trò</label>
+                    <div class="clearable-select">
+                        <select name="role" required data-enum-select>
+                            <option value="">Chọn vai trò</option>
+                            <option th:each="role : ${staffRoles}" th:value="${role}" th:text="${@shopLabels.label(role)}"></option>
+                        </select>
+                        <button type="button" class="clear-select-btn" aria-label="Xóa lựa chọn">×</button>
+                    </div>
+                </div>
+            </div>
+            <div class="field">
+                <label>Địa chỉ</label>
+                <input class="form-control" name="address" autocomplete="street-address">
+            </div>
+            <div class="actions">
+                <button class="btn" type="submit">Thêm nhân viên</button>
+            </div>
+        </form>
+
+        <div class="admin-tools mt-16">
+            <input class="form-control" data-table-search="#staffTable" placeholder="Tìm nhân viên, email, số điện thoại, vai trò">
+        </div>
+        <div class="table-wrap">
+            <table class="table" id="staffTable">
+                <thead><tr><th>Username</th><th>Email</th><th>Số điện thoại</th><th>Vai trò</th><th>Trạng thái</th><th>Thao tác</th></tr></thead>
+                <tbody>
+                <tr th:each="staff : ${staffUsers}">
+                    <td><strong th:text="${staff.username}">staff</strong><p class="muted" th:text="${staff.fullName}">Tên nhân viên</p></td>
+                    <td class="cell-text" th:text="${staff.email}">email</td>
+                    <td th:text="${staff.phone == null or staff.phone.isBlank() ? 'Chưa có' : staff.phone}">phone</td>
+                    <td>
+                        <span th:if="${!canAssignStaffRoles or staff.role == T(com.example.Admin.Shop.Model.ShopRole).SUPER_ADMIN or staff.id == currentShopUser.id}"
+                              class="badge status-info"
+                              th:text="${@shopLabels.label(staff.role)}">Vai trò</span>
+                        <form th:if="${canAssignStaffRoles and staff.role != T(com.example.Admin.Shop.Model.ShopRole).SUPER_ADMIN and staff.id != currentShopUser.id}"
+                              th:action="@{/admin/staff/{id}/role(id=${staff.id})}" method="post" class="inline-form"
+                              data-confirm="Bạn có chắc muốn đổi vai trò nhân viên này?">
+                            <div class="clearable-select">
+                                <select name="role" required data-enum-select>
+                                    <option value="">Chọn vai trò</option>
+                                    <option th:each="role : ${staffRoles}" th:value="${role}" th:selected="${role == staff.role}" th:text="${@shopLabels.label(role)}"></option>
+                                </select>
+                                <button type="button" class="clear-select-btn" aria-label="Xóa lựa chọn">×</button>
+                            </div>
+                            <button class="btn secondary small" type="submit">Lưu</button>
+                        </form>
+                    </td>
+                    <td>
+                        <span th:class="${staff.enabled ? 'badge status-success' : 'badge status-danger'}"
+                              th:text="${@shopLabels.enabledLabel(staff.enabled)}">Đang hoạt động</span>
+                    </td>
+                    <td>
+                        <form th:if="${staff.role != T(com.example.Admin.Shop.Model.ShopRole).SUPER_ADMIN and staff.id != currentShopUser.id}"
+                              th:action="@{/admin/staff/{id}/toggle(id=${staff.id})}" method="post"
+                              data-confirm="Bạn có chắc muốn đổi trạng thái nhân viên này?">
+                            <button class="btn danger small" type="submit" th:text="${staff.enabled ? 'Khóa' : 'Mở khóa'}">Khóa</button>
+                        </form>
+                        <span th:if="${staff.role == T(com.example.Admin.Shop.Model.ShopRole).SUPER_ADMIN or staff.id == currentShopUser.id}" class="muted">Bảo vệ</span>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+</body>
+</html>

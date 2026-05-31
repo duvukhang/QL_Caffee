@@ -35,6 +35,7 @@ public class ShopLabelHelper {
             case "STAFF" -> "Nhân viên";
             case "ADMIN" -> "Quản trị viên";
             case "MANAGER" -> "Quản lý";
+            case "SUPER_ADMIN" -> "Quản trị hệ thống";
             default -> prettify(key);
         };
     }

@@ -14,6 +14,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.example.Admin.Shop.Model.ShopOrderStatus;
 import com.example.Admin.Shop.Model.ShopReview;
+import com.example.Admin.Shop.Model.ShopRole;
 import com.example.Admin.Shop.Repository.ShopOrderRepository;
 import com.example.Admin.Shop.Repository.ShopReviewRepository;
 import com.example.Admin.Shop.Service.ShopCurrentUserService;
@@ -46,11 +47,11 @@ public class ShopOrderController {
         var user = currentUserService.requireUser();
         var order = orderRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-        if (!order.getUser().getId().equals(user.getId()) && !user.isAdminLike()) {
+        if (!canViewOrder(user, order)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
 
-        boolean canReviewOrder = !user.isAdminLike()
+        boolean canReviewOrder = user.getRole() == ShopRole.CUSTOMER
                 && order.getUser().getId().equals(user.getId())
                 && order.getStatus() == ShopOrderStatus.COMPLETED;
         List<Long> reviewedProductIds = canReviewOrder
@@ -69,6 +70,9 @@ public class ShopOrderController {
     @PostMapping("/orders/{id}/cancel")
     public String cancel(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         var user = currentUserService.requireUser();
+        if (user.getRole() != ShopRole.CUSTOMER) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        }
         var order = orderRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
         try {
@@ -84,6 +88,9 @@ public class ShopOrderController {
     public String review(@PathVariable Long orderId, @PathVariable Long productId, @RequestParam int rating,
             @RequestParam String comment, RedirectAttributes redirectAttributes) {
         var user = currentUserService.requireUser();
+        if (user.getRole() != ShopRole.CUSTOMER) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        }
         var order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
         if (!order.getUser().getId().equals(user.getId())) {
@@ -119,5 +126,11 @@ public class ShopOrderController {
 
         redirectAttributes.addFlashAttribute("success", "Đã gửi đánh giá, vui lòng chờ admin duyệt");
         return "redirect:/orders/" + orderId;
+    }
+
+    private boolean canViewOrder(com.example.Admin.Shop.Model.ShopUser user, com.example.Admin.Shop.Model.ShopOrder order) {
+        return order.getUser().getId().equals(user.getId())
+                || user.getRole().canViewAllOrders()
+                || (user.getRole() == ShopRole.STAFF && order.getUser().getRole() == ShopRole.CUSTOMER);
     }
 }

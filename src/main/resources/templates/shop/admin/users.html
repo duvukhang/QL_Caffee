@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Người dùng</title>
+    <title>Khách hàng</title>
     <link rel="stylesheet" th:href="@{/css/shop.css}">
 </head>
 <body>
@@ -15,32 +15,21 @@
         <div class="section-title">
             <div>
                 <p class="section-kicker">Quản lý</p>
-                <h1>Người dùng</h1>
+                <h1>Khách hàng</h1>
             </div>
         </div>
         <div class="admin-tools">
-            <input class="form-control" data-table-search="#usersTable" placeholder="Tìm username, email, vai trò">
+            <input class="form-control" data-table-search="#usersTable" placeholder="Tìm username, email, số điện thoại">
         </div>
         <div class="table-wrap">
             <table class="table" id="usersTable">
-                <thead><tr><th>Username</th><th>Email</th><th>Vai trò</th><th>Trạng thái</th><th></th></tr></thead>
+                <thead><tr><th>Username</th><th>Email</th><th>Số điện thoại</th><th>Địa chỉ</th><th>Trạng thái</th><th>Thao tác</th></tr></thead>
                 <tbody>
                 <tr th:each="user : ${users}">
                     <td><strong th:text="${user.username}">user</strong><p class="muted" th:text="${user.fullName}"></p></td>
-                    <td th:text="${user.email}">email</td>
-                    <td>
-                        <form th:action="@{/admin/users/{id}/role(id=${user.id})}" method="post" class="inline-form"
-                              data-confirm="Bạn có chắc muốn đổi vai trò người dùng này?">
-                            <div class="clearable-select">
-                                <select name="role" required data-enum-select>
-                                    <option value="">Chọn vai trò</option>
-                                    <option th:each="role : ${roles}" th:value="${role}" th:selected="${role == user.role}" th:text="${@shopLabels.label(role)}"></option>
-                                </select>
-                                <button type="button" class="clear-select-btn" aria-label="Xóa lựa chọn">×</button>
-                            </div>
-                            <button class="btn secondary small" type="submit">Lưu</button>
-                        </form>
-                    </td>
+                    <td class="cell-text" th:text="${user.email}">email</td>
+                    <td th:text="${user.phone == null or user.phone.isBlank() ? 'Chưa có' : user.phone}">phone</td>
+                    <td class="cell-text" th:text="${user.address == null or user.address.isBlank() ? 'Chưa có' : user.address}">address</td>
                     <td>
                         <span th:class="${user.enabled ? 'badge status-success' : 'badge status-danger'}"
                               th:text="${@shopLabels.enabledLabel(user.enabled)}">Đang hoạt động</span>

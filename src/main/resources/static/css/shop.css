@@ -518,6 +518,36 @@ label {
   margin-bottom: 14px;
 }
 
+.password-input {
+  position: relative;
+}
+
+.password-input .form-control {
+  padding-right: 72px;
+}
+
+.password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  min-width: 52px;
+  min-height: 30px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #fff8f0;
+  color: var(--coffee);
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 850;
+  transform: translateY(-50%);
+}
+
+.password-toggle:hover {
+  border-color: var(--coffee-soft);
+  background: var(--cream);
+  color: var(--coffee-dark);
+}
+
 .check-row {
   display: flex;
   align-items: center;

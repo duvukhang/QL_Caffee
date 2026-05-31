@@ -11,9 +11,11 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -29,10 +31,12 @@ import com.example.Admin.Shop.Model.InventoryHistoryType;
 import com.example.Admin.Shop.Model.ShopCategory;
 import com.example.Admin.Shop.Model.ShopCoupon;
 import com.example.Admin.Shop.Model.ShopInventoryHistory;
+import com.example.Admin.Shop.Model.ShopOrder;
 import com.example.Admin.Shop.Model.ShopOrderStatus;
 import com.example.Admin.Shop.Model.ShopProduct;
 import com.example.Admin.Shop.Model.ShopProductImage;
 import com.example.Admin.Shop.Model.ShopRole;
+import com.example.Admin.Shop.Model.ShopUser;
 import com.example.Admin.Shop.Model.ShopUserCoupon;
 import com.example.Admin.Shop.Repository.ShopBrandRepository;
 import com.example.Admin.Shop.Repository.ShopCategoryRepository;
@@ -43,11 +47,20 @@ import com.example.Admin.Shop.Repository.ShopProductRepository;
 import com.example.Admin.Shop.Repository.ShopReviewRepository;
 import com.example.Admin.Shop.Repository.ShopUserCouponRepository;
 import com.example.Admin.Shop.Repository.ShopUserRepository;
+import com.example.Admin.Shop.Service.ShopCurrentUserService;
 import com.example.Admin.Shop.Service.ShopOrderService;
 import com.example.Admin.Shop.Service.ShopSlugService;
 
 @Controller
 public class ShopAdminController {
+    private static final Pattern EMAIL = Pattern.compile("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$");
+    private static final Pattern PHONE = Pattern.compile("^\\d{10,11}$");
+    private static final List<ShopRole> EMPLOYEE_ROLES = List.of(
+            ShopRole.STAFF, ShopRole.MANAGER, ShopRole.ADMIN, ShopRole.SUPER_ADMIN);
+    private static final List<ShopRole> ADMIN_ASSIGNABLE_EMPLOYEE_ROLES = List.of(
+            ShopRole.STAFF, ShopRole.MANAGER, ShopRole.ADMIN);
+    private static final List<ShopRole> MANAGER_ASSIGNABLE_EMPLOYEE_ROLES = List.of(ShopRole.STAFF);
+
     private final ShopUserRepository userRepository;
     private final ShopCategoryRepository categoryRepository;
     private final ShopBrandRepository brandRepository;
@@ -58,12 +71,15 @@ public class ShopAdminController {
     private final ShopReviewRepository reviewRepository;
     private final ShopInventoryHistoryRepository inventoryHistoryRepository;
     private final ShopOrderService orderService;
+    private final ShopCurrentUserService currentUserService;
+    private final PasswordEncoder passwordEncoder;
 
     public ShopAdminController(ShopUserRepository userRepository, ShopCategoryRepository categoryRepository,
             ShopBrandRepository brandRepository, ShopProductRepository productRepository,
             ShopCouponRepository couponRepository, ShopUserCouponRepository userCouponRepository,
             ShopOrderRepository orderRepository, ShopReviewRepository reviewRepository,
-            ShopInventoryHistoryRepository inventoryHistoryRepository, ShopOrderService orderService) {
+            ShopInventoryHistoryRepository inventoryHistoryRepository, ShopOrderService orderService,
+            ShopCurrentUserService currentUserService, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.categoryRepository = categoryRepository;
         this.brandRepository = brandRepository;
@@ -74,6 +90,8 @@ public class ShopAdminController {
         this.reviewRepository = reviewRepository;
         this.inventoryHistoryRepository = inventoryHistoryRepository;
         this.orderService = orderService;
+        this.currentUserService = currentUserService;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @GetMapping("/admin/dashboard")
@@ -242,20 +260,38 @@ public class ShopAdminController {
 
     @GetMapping("/admin/orders")
     public String adminOrders(@RequestParam(required = false) ShopOrderStatus status, Model model) {
-        var orders = orderRepository.findAll().stream()
+        ShopUser currentUser = currentUserService.requireUser();
+        var baseOrders = currentUser.getRole().canViewAllOrders()
+                ? orderRepository.findAll()
+                : orderRepository.findAll().stream()
+                        .filter(order -> canStaffManageOrder(currentUser, order))
+                        .toList();
+        var orders = baseOrders.stream()
                 .filter(order -> status == null || order.getStatus() == status)
                 .sorted(Comparator.comparing(order -> order.getCreatedAt(), Comparator.nullsLast(Comparator.reverseOrder())))
                 .toList();
         model.addAttribute("orders", orders);
-        model.addAttribute("statuses", ShopOrderStatus.values());
+        model.addAttribute("statuses", availableOrderStatuses(currentUser));
         model.addAttribute("status", status);
+        model.addAttribute("canViewAllOrders", currentUser.getRole().canViewAllOrders());
+        model.addAttribute("canCancelOrders", currentUser.getRole().canCancelOrders());
+        model.addAttribute("orderPageTitle", currentUser.getRole() == ShopRole.STAFF ? "Đơn hàng khách hàng" : "Đơn hàng");
         return "shop/admin/orders";
     }
 
     @PostMapping("/admin/orders/{id}/status")
     public String updateOrderStatus(@PathVariable Long id, @RequestParam ShopOrderStatus status,
             RedirectAttributes redirectAttributes) {
+        ShopUser currentUser = currentUserService.requireUser();
         var order = orderRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        if (!currentUser.getRole().canViewAllOrders() && !canStaffManageOrder(currentUser, order)) {
+            redirectAttributes.addFlashAttribute("error", "Nhân viên chỉ được cập nhật đơn của khách hàng");
+            return "redirect:/admin/orders";
+        }
+        if (status == ShopOrderStatus.CANCELLED && !currentUser.getRole().canCancelOrders()) {
+            redirectAttributes.addFlashAttribute("error", "Nhân viên không được hủy đơn hàng");
+            return "redirect:/admin/orders";
+        }
         try {
             orderService.moveToStatus(order, status);
             redirectAttributes.addFlashAttribute("success", "Đã cập nhật trạng thái đơn");
@@ -267,16 +303,17 @@ public class ShopAdminController {
 
     @GetMapping("/admin/users")
     public String users(Model model) {
-        model.addAttribute("users", userRepository.findAll());
-        model.addAttribute("roles", ShopRole.values());
+        model.addAttribute("users", userRepository.findByRole(ShopRole.CUSTOMER).stream()
+                .sorted(Comparator.comparing(ShopUser::getCreatedAt, Comparator.nullsLast(Comparator.reverseOrder())))
+                .toList());
         return "shop/admin/users";
     }
 
     @PostMapping("/admin/users/{id}/toggle")
     public String toggleUser(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         var user = userRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-        if ("admin111".equalsIgnoreCase(user.getUsername())) {
-            redirectAttributes.addFlashAttribute("error", "Không được khóa admin111");
+        if (user.getRole() != ShopRole.CUSTOMER) {
+            redirectAttributes.addFlashAttribute("error", "Trang khách hàng chỉ thao tác tài khoản khách hàng");
             return "redirect:/admin/users";
         }
         user.setEnabled(!user.isEnabled());
@@ -285,17 +322,108 @@ public class ShopAdminController {
         return "redirect:/admin/users";
     }
 
-    @PostMapping("/admin/users/{id}/role")
-    public String updateUserRole(@PathVariable Long id, @RequestParam ShopRole role, RedirectAttributes redirectAttributes) {
+    @GetMapping("/admin/staff")
+    public String staff(Model model) {
+        ShopUser currentUser = currentUserService.requireUser();
+        model.addAttribute("staffUsers", visibleStaffUsers(currentUser).stream()
+                .sorted(Comparator.comparing(ShopUser::getCreatedAt, Comparator.nullsLast(Comparator.reverseOrder())))
+                .toList());
+        model.addAttribute("staffRoles", assignableEmployeeRoles(currentUser));
+        model.addAttribute("canAssignStaffRoles", currentUser.getRole().canAssignRoles());
+        return "shop/admin/staff";
+    }
+
+    @PostMapping("/admin/staff")
+    public String createStaff(@RequestParam String username,
+            @RequestParam String email,
+            @RequestParam String password,
+            @RequestParam String fullName,
+            @RequestParam String phone,
+            @RequestParam(required = false) String address,
+            @RequestParam(required = false) ShopRole role,
+            RedirectAttributes redirectAttributes) {
+        ShopUser currentUser = currentUserService.requireUser();
+        ShopRole newRole = role == null ? ShopRole.STAFF : role;
+        String normalizedUsername = username == null ? "" : username.trim();
+        String normalizedEmail = email == null ? "" : email.trim();
+        String normalizedPhone = phone == null ? "" : phone.trim();
+
+        String error = validateStaff(normalizedUsername, normalizedEmail, password, fullName, normalizedPhone, newRole,
+                assignableEmployeeRoles(currentUser));
+        if (error != null) {
+            redirectAttributes.addFlashAttribute("error", error);
+            return "redirect:/admin/staff";
+        }
+        if (userRepository.existsByUsernameIgnoreCase(normalizedUsername)) {
+            redirectAttributes.addFlashAttribute("error", "Username đã tồn tại");
+            return "redirect:/admin/staff";
+        }
+        if (userRepository.existsByEmailIgnoreCase(normalizedEmail)) {
+            redirectAttributes.addFlashAttribute("error", "Email đã tồn tại");
+            return "redirect:/admin/staff";
+        }
+        if (userRepository.existsByPhone(normalizedPhone)) {
+            redirectAttributes.addFlashAttribute("error", "Số điện thoại đã tồn tại");
+            return "redirect:/admin/staff";
+        }
+
+        ShopUser user = new ShopUser();
+        user.setUsername(normalizedUsername);
+        user.setEmail(normalizedEmail);
+        user.setPasswordHash(passwordEncoder.encode(password));
+        user.setFullName(fullName.trim());
+        user.setPhone(normalizedPhone);
+        user.setAddress(address == null || address.isBlank() ? null : address.trim());
+        user.setRole(newRole);
+        user.setEnabled(true);
+        userRepository.save(user);
+
+        redirectAttributes.addFlashAttribute("success", "Đã tạo tài khoản nhân viên");
+        return "redirect:/admin/staff";
+    }
+
+    @PostMapping("/admin/staff/{id}/toggle")
+    public String toggleStaff(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        ShopUser currentUser = currentUserService.requireUser();
         var user = userRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-        if ("admin111".equalsIgnoreCase(user.getUsername())) {
-            redirectAttributes.addFlashAttribute("error", "Không được đổi quyền admin111");
-            return "redirect:/admin/users";
+        if (!canManageStaffTarget(currentUser, user)) {
+            redirectAttributes.addFlashAttribute("error", "Bạn không có quyền khóa hoặc mở khóa tài khoản này");
+            return "redirect:/admin/staff";
+        }
+        if (user.getId().equals(currentUser.getId())) {
+            redirectAttributes.addFlashAttribute("error", "Không được khóa tài khoản đang đăng nhập");
+            return "redirect:/admin/staff";
+        }
+        user.setEnabled(!user.isEnabled());
+        userRepository.save(user);
+        redirectAttributes.addFlashAttribute("success", "Đã cập nhật trạng thái nhân viên");
+        return "redirect:/admin/staff";
+    }
+
+    @PostMapping("/admin/staff/{id}/role")
+    public String updateStaffRole(@PathVariable Long id, @RequestParam ShopRole role, RedirectAttributes redirectAttributes) {
+        ShopUser currentUser = currentUserService.requireUser();
+        var user = userRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        if (!currentUser.getRole().canAssignRoles()) {
+            redirectAttributes.addFlashAttribute("error", "Chỉ quản trị viên được phân quyền người dùng");
+            return "redirect:/admin/staff";
+        }
+        if (!canManageStaffTarget(currentUser, user)) {
+            redirectAttributes.addFlashAttribute("error", "Bạn không có quyền đổi quyền tài khoản này");
+            return "redirect:/admin/staff";
+        }
+        if (!assignableEmployeeRoles(currentUser).contains(role)) {
+            redirectAttributes.addFlashAttribute("error", "Vai trò nhân viên không hợp lệ");
+            return "redirect:/admin/staff";
+        }
+        if (user.getId().equals(currentUser.getId())) {
+            redirectAttributes.addFlashAttribute("error", "Không được đổi quyền tài khoản đang đăng nhập");
+            return "redirect:/admin/staff";
         }
         user.setRole(role);
         userRepository.save(user);
-        redirectAttributes.addFlashAttribute("success", "Đã cập nhật quyền");
-        return "redirect:/admin/users";
+        redirectAttributes.addFlashAttribute("success", "Đã cập nhật quyền nhân viên");
+        return "redirect:/admin/staff";
     }
 
     @GetMapping("/admin/coupons")
@@ -417,6 +545,75 @@ public class ShopAdminController {
         inventoryHistoryRepository.save(history);
         redirectAttributes.addFlashAttribute("success", "Đã nhập thêm tồn kho");
         return "redirect:/admin/inventory";
+    }
+
+    private String validateStaff(String username, String email, String password, String fullName, String phone,
+            ShopRole role, List<ShopRole> assignableRoles) {
+        if (username == null || username.length() < 3) {
+            return "Username nhân viên tối thiểu 3 ký tự";
+        }
+        if (email == null || !EMAIL.matcher(email).matches()) {
+            return "Email nhân viên không hợp lệ";
+        }
+        if (phone == null || !PHONE.matcher(phone).matches()) {
+            return "Số điện thoại nhân viên phải gồm 10-11 chữ số";
+        }
+        if (password == null || password.length() < 6) {
+            return "Mật khẩu nhân viên tối thiểu 6 ký tự";
+        }
+        if (fullName == null || fullName.isBlank()) {
+            return "Họ tên nhân viên không được rỗng";
+        }
+        if (!assignableRoles.contains(role)) {
+            return "Vai trò nhân viên không hợp lệ";
+        }
+        return null;
+    }
+
+    private List<ShopRole> assignableEmployeeRoles(ShopUser currentUser) {
+        if (currentUser.getRole().canAssignRoles()) {
+            return ADMIN_ASSIGNABLE_EMPLOYEE_ROLES;
+        }
+        if (currentUser.getRole() == ShopRole.MANAGER) {
+            return MANAGER_ASSIGNABLE_EMPLOYEE_ROLES;
+        }
+        return List.of();
+    }
+
+    private List<ShopUser> visibleStaffUsers(ShopUser currentUser) {
+        if (currentUser.getRole().canAssignRoles()) {
+            return userRepository.findByRoleIn(EMPLOYEE_ROLES);
+        }
+        return userRepository.findByRole(ShopRole.STAFF);
+    }
+
+    private boolean canManageStaffTarget(ShopUser currentUser, ShopUser targetUser) {
+        if (targetUser.getRole() == null || !targetUser.getRole().isEmployee()) {
+            return false;
+        }
+        if (currentUser.getRole() == ShopRole.MANAGER) {
+            return targetUser.getRole() == ShopRole.STAFF;
+        }
+        if (currentUser.getRole().canAssignRoles()) {
+            return targetUser.getRole() != ShopRole.SUPER_ADMIN;
+        }
+        return false;
+    }
+
+    private boolean canStaffManageOrder(ShopUser currentUser, ShopOrder order) {
+        if (currentUser.getRole() != ShopRole.STAFF) {
+            return order.getUser().getId().equals(currentUser.getId());
+        }
+        return order.getUser().getRole() == ShopRole.CUSTOMER || order.getUser().getId().equals(currentUser.getId());
+    }
+
+    private ShopOrderStatus[] availableOrderStatuses(ShopUser currentUser) {
+        if (currentUser.getRole().canCancelOrders()) {
+            return ShopOrderStatus.values();
+        }
+        return java.util.Arrays.stream(ShopOrderStatus.values())
+                .filter(status -> status != ShopOrderStatus.CANCELLED)
+                .toArray(ShopOrderStatus[]::new);
     }
 
     private String uniqueSlug(String name, Long currentId) {

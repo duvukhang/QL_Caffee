@@ -44,18 +44,34 @@ public class SecurityConfig {
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**")
                         .permitAll()
-                        .requestMatchers("/admin/**").hasAnyRole("STAFF", "MANAGER", "ADMIN", "SUPER_ADMIN")
-                        .requestMatchers("/cart", "/cart/**", "/checkout", "/payments/**", "/orders/**", "/my-coupons")
-                        .hasRole("CUSTOMER")
+                        .requestMatchers("/admin/dashboard").hasAnyRole("MANAGER", "ADMIN", "SUPER_ADMIN")
+                        .requestMatchers("/admin/categories/**", "/admin/products/**", "/admin/inventory/**",
+                                "/admin/coupons/**", "/admin/reviews/**")
+                        .hasAnyRole("MANAGER", "ADMIN", "SUPER_ADMIN")
+                        .requestMatchers("/admin/users", "/admin/users/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
+                        .requestMatchers("/admin/staff/*/role").hasAnyRole("ADMIN", "SUPER_ADMIN")
+                        .requestMatchers("/admin/staff", "/admin/staff/**").hasAnyRole("MANAGER", "ADMIN", "SUPER_ADMIN")
+                        .requestMatchers("/admin/orders", "/admin/orders/**").hasAnyRole("STAFF", "MANAGER", "ADMIN", "SUPER_ADMIN")
+                        .requestMatchers("/admin").hasAnyRole("STAFF", "MANAGER", "ADMIN", "SUPER_ADMIN")
+                        .requestMatchers("/orders/*/cancel", "/orders/*/products/**").hasRole("CUSTOMER")
+                        .requestMatchers("/cart", "/cart/**", "/checkout", "/payments/**", "/orders/**")
+                        .hasAnyRole("CUSTOMER", "STAFF", "MANAGER", "ADMIN", "SUPER_ADMIN")
+                        .requestMatchers("/my-coupons").hasRole("CUSTOMER")
                         .anyRequest().authenticated())
                 .formLogin(login -> login
                         .loginPage("/login")
                         .loginProcessingUrl("/login")
                         .successHandler((request, response, authentication) -> {
-                            boolean adminLike = authentication.getAuthorities().stream()
-                                    .anyMatch(authority -> List.of("ROLE_STAFF", "ROLE_MANAGER", "ROLE_ADMIN", "ROLE_SUPER_ADMIN")
+                            boolean staff = authentication.getAuthorities().stream()
+                                    .anyMatch(authority -> "ROLE_STAFF".equals(authority.getAuthority()));
+                            boolean managerOrAdmin = authentication.getAuthorities().stream()
+                                    .anyMatch(authority -> List.of("ROLE_MANAGER", "ROLE_ADMIN", "ROLE_SUPER_ADMIN")
                                             .contains(authority.getAuthority()));
-                            if (adminLike) {
+                            if (staff) {
+                                response.sendRedirect("/admin/orders");
+                                return;
+                            }
+                            if (managerOrAdmin) {
                                 response.sendRedirect("/admin/dashboard");
                                 return;
                             }

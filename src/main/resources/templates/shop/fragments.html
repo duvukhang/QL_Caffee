@@ -10,7 +10,13 @@
             <span>QL Caffee</span>
         </a>
         <a class="brand"
-           th:if="${currentShopUser != null and currentShopUser.role != T(com.example.Admin.Shop.Model.ShopRole).CUSTOMER}"
+           th:if="${currentShopUser != null and currentShopUser.role == T(com.example.Admin.Shop.Model.ShopRole).STAFF}"
+           th:href="@{/admin/orders}">
+            <span class="brand-mark">QC</span>
+            <span>QL Caffee</span>
+        </a>
+        <a class="brand"
+           th:if="${currentShopUser != null and currentShopUser.role.canViewReports()}"
            th:href="@{/admin/dashboard}">
             <span class="brand-mark">QC</span>
             <span>QL Caffee</span>
@@ -20,7 +26,9 @@
             <a th:if="${currentShopUser != null and currentShopUser.role == T(com.example.Admin.Shop.Model.ShopRole).CUSTOMER}" th:href="@{/cart}">Giỏ hàng</a>
             <a th:if="${currentShopUser != null and currentShopUser.role == T(com.example.Admin.Shop.Model.ShopRole).CUSTOMER}" th:href="@{/orders}">Đơn hàng</a>
             <a th:if="${currentShopUser != null and currentShopUser.role == T(com.example.Admin.Shop.Model.ShopRole).CUSTOMER}" th:href="@{/my-coupons}">Mã của tôi</a>
-            <a th:if="${currentShopUser != null and currentShopUser.role != T(com.example.Admin.Shop.Model.ShopRole).CUSTOMER}" th:href="@{/admin/dashboard}">Dashboard</a>
+            <a th:if="${currentShopUser != null and currentShopUser.role == T(com.example.Admin.Shop.Model.ShopRole).STAFF}" th:href="@{/admin/orders}">Đơn hàng</a>
+            <a th:if="${currentShopUser != null and currentShopUser.role.canViewReports()}" th:href="@{/admin/dashboard}">Dashboard</a>
+            <a th:if="${currentShopUser != null}" th:href="@{/account}">Tài khoản</a>
             <a th:if="${currentShopUser == null}" th:href="@{/login}">Đăng nhập</a>
             <a th:if="${currentShopUser == null}" th:href="@{/register}">Đăng ký</a>
             <form th:if="${currentShopUser != null}" th:action="@{/logout}" method="post">
@@ -43,14 +51,16 @@
 </div>
 
 <aside th:fragment="adminNav" class="sidebar">
-    <a th:href="@{/admin/dashboard}">Tổng quan</a>
-    <a th:href="@{/admin/categories}">Danh mục</a>
-    <a th:href="@{/admin/products}">Sản phẩm</a>
-    <a th:href="@{/admin/inventory}">Tồn kho</a>
-    <a th:href="@{/admin/coupons}">Mã khuyến mãi</a>
+    <a th:if="${currentShopUser != null and currentShopUser.role.canViewReports()}" th:href="@{/admin/dashboard}">Tổng quan</a>
+    <a th:if="${currentShopUser != null and currentShopUser.role.canManageCatalog()}" th:href="@{/admin/categories}">Danh mục</a>
+    <a th:if="${currentShopUser != null and currentShopUser.role.canManageCatalog()}" th:href="@{/admin/products}">Sản phẩm</a>
+    <a th:if="${currentShopUser != null and currentShopUser.role.canManageInventory()}" th:href="@{/admin/inventory}">Tồn kho</a>
+    <a th:if="${currentShopUser != null and currentShopUser.role.canManagePromotions()}" th:href="@{/admin/coupons}">Mã khuyến mãi</a>
     <a th:href="@{/admin/orders}">Đơn hàng</a>
-    <a th:href="@{/admin/users}">Người dùng</a>
-    <a th:href="@{/admin/reviews}">Đánh giá</a>
+    <a th:if="${currentShopUser != null and currentShopUser.role.canManageCustomerAccounts()}" th:href="@{/admin/users}">Khách hàng</a>
+    <a th:if="${currentShopUser != null and currentShopUser.role.canManageStaffAccounts()}"
+       th:href="@{/admin/staff}">Nhân viên</a>
+    <a th:if="${currentShopUser != null and currentShopUser.role.canModerateReviews()}" th:href="@{/admin/reviews}">Đánh giá</a>
 </aside>
 </body>
 </html>
