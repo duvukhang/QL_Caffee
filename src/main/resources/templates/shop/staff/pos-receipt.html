@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="'In hóa đơn ' + ${order.orderCode}">In hóa đơn</title>
+    <link rel="stylesheet" th:href="@{/css/shop.css}">
+</head>
+<body class="receipt-body">
+<main class="receipt">
+    <header class="receipt-header">
+        <strong>Gusto Coffee</strong>
+        <span>Hóa đơn bán hàng</span>
+    </header>
+
+    <section class="receipt-meta">
+        <p><strong>Mã đơn:</strong> <span th:text="${order.orderCode}">QLCF000001</span></p>
+        <p><strong>Ngày giờ:</strong> <span th:text="${#temporals.format(order.createdAt, 'dd/MM/yyyy HH:mm')}">31/05/2026 11:00</span></p>
+        <p><strong>Nhân viên:</strong> <span th:text="${order.createdByStaff != null ? order.createdByStaff.fullName : 'Chưa có'}">Nhân viên</span></p>
+        <p><strong>Loại đơn:</strong> <span th:text="${@shopLabels.label(order.orderType)}">Đơn tại quầy</span></p>
+        <p><strong>Thanh toán:</strong> <span th:text="${@shopLabels.label(order.paymentMethod)}">Tiền mặt</span></p>
+        <p><strong>Trạng thái:</strong> <span>Đã thanh toán</span></p>
+    </section>
+
+    <table class="receipt-table">
+        <thead>
+        <tr>
+            <th>Sản phẩm</th>
+            <th>SL</th>
+            <th>Đơn giá</th>
+            <th>Tiền</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="item : ${order.items}">
+            <td th:text="${item.productName}">Sản phẩm</td>
+            <td th:text="${item.quantity}">1</td>
+            <td th:text="${#numbers.formatDecimal(item.price,0,'COMMA',0,'POINT')}">0</td>
+            <td th:text="${#numbers.formatDecimal(item.total,0,'COMMA',0,'POINT')}">0</td>
+        </tr>
+        </tbody>
+    </table>
+
+    <section class="receipt-total">
+        <p><span>Tạm tính</span><strong th:text="${#numbers.formatDecimal(order.subtotal,0,'COMMA',0,'POINT')} + ' đ'">0 đ</strong></p>
+        <p><span>Giảm giá</span><strong th:text="${#numbers.formatDecimal(order.discountAmount,0,'COMMA',0,'POINT')} + ' đ'">0 đ</strong></p>
+        <p class="receipt-grand"><span>Tổng thanh toán</span><strong th:text="${#numbers.formatDecimal(order.totalAmount,0,'COMMA',0,'POINT')} + ' đ'">0 đ</strong></p>
+    </section>
+
+    <footer class="receipt-footer">
+        <p>Cảm ơn quý khách và hẹn gặp lại.</p>
+        <div class="actions no-print">
+            <button class="btn" type="button" onclick="window.print()">In hóa đơn</button>
+            <a class="btn secondary" th:href="@{/staff/pos/orders/{id}(id=${order.id})}">Quay lại</a>
+        </div>
+    </footer>
+</main>
+</body>
+</html>

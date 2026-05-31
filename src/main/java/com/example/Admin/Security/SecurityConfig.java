@@ -52,6 +52,7 @@ public class SecurityConfig {
                         .requestMatchers("/admin/staff/*/role").hasAnyRole("ADMIN", "SUPER_ADMIN")
                         .requestMatchers("/admin/staff", "/admin/staff/**").hasAnyRole("MANAGER", "ADMIN", "SUPER_ADMIN")
                         .requestMatchers("/admin/orders", "/admin/orders/**").hasAnyRole("STAFF", "MANAGER", "ADMIN", "SUPER_ADMIN")
+                        .requestMatchers("/staff/pos", "/staff/pos/**").hasAnyRole("STAFF", "MANAGER", "ADMIN", "SUPER_ADMIN")
                         .requestMatchers("/admin").hasAnyRole("STAFF", "MANAGER", "ADMIN", "SUPER_ADMIN")
                         .requestMatchers("/orders/*/cancel", "/orders/*/products/**").hasRole("CUSTOMER")
                         .requestMatchers("/cart", "/cart/**", "/checkout", "/payments/**", "/orders/**")
@@ -68,7 +69,7 @@ public class SecurityConfig {
                                     .anyMatch(authority -> List.of("ROLE_MANAGER", "ROLE_ADMIN", "ROLE_SUPER_ADMIN")
                                             .contains(authority.getAuthority()));
                             if (staff) {
-                                response.sendRedirect("/admin/orders");
+                                response.sendRedirect("/staff/pos");
                                 return;
                             }
                             if (managerOrAdmin) {

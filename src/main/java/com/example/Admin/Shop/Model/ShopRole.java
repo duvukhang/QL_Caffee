@@ -19,6 +19,10 @@ public enum ShopRole {
         return this == CUSTOMER || isEmployee();
     }
 
+    public boolean canUsePos() {
+        return isEmployee();
+    }
+
     public boolean canViewReports() {
         return this == MANAGER || this == ADMIN || this == SUPER_ADMIN;
     }

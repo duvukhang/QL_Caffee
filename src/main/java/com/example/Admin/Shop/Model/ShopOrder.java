@@ -44,6 +44,14 @@ public class ShopOrder {
     @JoinColumn(name = "user_id", nullable = false)
     private ShopUser user;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 30)
+    private ShopOrderType orderType = ShopOrderType.ONLINE;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "created_by_staff_id")
+    private ShopUser createdByStaff;
+
     @Column(nullable = false, length = 120, columnDefinition = "nvarchar(120)")
     private String receiverName;
 
@@ -65,6 +73,8 @@ public class ShopOrder {
     private String paymentReference;
 
     private LocalDateTime paidAt;
+
+    private LocalDateTime completedAt;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30)
@@ -105,6 +115,7 @@ public class ShopOrder {
     }
 
     public boolean isCancelableByCustomer() {
-        return status == ShopOrderStatus.PENDING || status == ShopOrderStatus.PENDING_PAYMENT;
+        return orderType == ShopOrderType.ONLINE
+                && (status == ShopOrderStatus.PENDING || status == ShopOrderStatus.PENDING_PAYMENT);
     }
 }

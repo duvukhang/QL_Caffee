@@ -34,10 +34,18 @@
             </div>
         </section>
         <aside class="panel summary">
-            <h2>Thông tin giao hàng</h2>
-            <p><strong>Người nhận:</strong> <span th:text="${order.receiverName}"></span></p>
-            <p><strong>Điện thoại:</strong> <span th:text="${order.receiverPhone}"></span></p>
-            <p><strong>Địa chỉ:</strong> <span th:text="${order.shippingAddress}"></span></p>
+            <h2 th:text="${order.orderType == T(com.example.Admin.Shop.Model.ShopOrderType).ONLINE ? 'Thông tin giao hàng' : 'Thông tin đơn tại quầy'}">Thông tin đơn</h2>
+            <p><strong>Loại đơn:</strong> <span th:text="${@shopLabels.label(order.orderType)}">Đơn online</span></p>
+            <div th:if="${order.orderType == T(com.example.Admin.Shop.Model.ShopOrderType).ONLINE}">
+                <p><strong>Người nhận:</strong> <span th:text="${order.receiverName}"></span></p>
+                <p><strong>Điện thoại:</strong> <span th:text="${order.receiverPhone}"></span></p>
+                <p><strong>Địa chỉ:</strong> <span th:text="${order.shippingAddress}"></span></p>
+            </div>
+            <div th:if="${order.orderType != T(com.example.Admin.Shop.Model.ShopOrderType).ONLINE}">
+                <p><strong>Khách:</strong> <span>Khách tại quầy</span></p>
+                <p><strong>Nhân viên tạo:</strong> <span th:text="${order.createdByStaff != null ? order.createdByStaff.fullName : 'Chưa có'}">Nhân viên</span></p>
+                <p><strong>Hoàn thành lúc:</strong> <span th:text="${order.completedAt != null ? #temporals.format(order.completedAt, 'dd/MM/yyyy HH:mm') : 'Chưa có'}">31/05/2026 11:00</span></p>
+            </div>
             <p><strong>Thanh toán:</strong> <span th:text="${@shopLabels.label(order.paymentMethod)}"></span></p>
             <p>
                 <strong>Trạng thái thanh toán:</strong>

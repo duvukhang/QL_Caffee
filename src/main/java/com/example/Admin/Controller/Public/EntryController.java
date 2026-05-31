@@ -11,7 +11,7 @@ public class EntryController {
     public String admin(Authentication authentication) {
         if (authentication != null && authentication.getAuthorities().stream()
                 .anyMatch(authority -> "ROLE_STAFF".equals(authority.getAuthority()))) {
-            return "redirect:/admin/orders";
+            return "redirect:/staff/pos";
         }
         return "redirect:/admin/dashboard";
     }

@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 import com.example.Admin.Shop.Model.PaymentMethod;
 import com.example.Admin.Shop.Model.PaymentStatus;
 import com.example.Admin.Shop.Model.ShopOrderStatus;
+import com.example.Admin.Shop.Model.ShopOrderType;
 
 @Component("shopLabels")
 public class ShopLabelHelper {
@@ -24,9 +25,18 @@ public class ShopLabelHelper {
         if (value instanceof PaymentMethod method) {
             return switch (method) {
                 case COD -> "Thanh toán khi nhận hàng";
+                case CASH -> "Tiền mặt";
+                case BANK_QR -> "Chuyển khoản QR";
                 case BANK_QR_MANUAL -> "Chuyển khoản QR";
                 case CARD -> "Thẻ ngân hàng";
                 case WALLET -> "Ví điện tử";
+            };
+        }
+        if (value instanceof ShopOrderType type) {
+            return switch (type) {
+                case ONLINE -> "Đơn online";
+                case POS -> "Đơn tại quầy";
+                case TAKE_AWAY -> "Mang đi";
             };
         }
         if (value instanceof ShopOrderStatus status) {
@@ -47,6 +57,7 @@ public class ShopLabelHelper {
             case "DELIVERED" -> "Hoàn thành";
             case "CANCELED" -> "Đã hủy";
             case "E_WALLET" -> "Ví điện tử";
+            case "BANK_QR" -> "Chuyển khoản QR";
             case "ACTIVE" -> "Đang hoạt động";
             case "INACTIVE" -> "Ngừng hoạt động";
             case "APPROVED" -> "Đã duyệt";

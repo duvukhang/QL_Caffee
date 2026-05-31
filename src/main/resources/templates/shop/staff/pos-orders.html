@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đơn tại quầy - QL Caffee</title>
+    <link rel="stylesheet" th:href="@{/css/shop.css}">
+</head>
+<body>
+<div th:replace="~{shop/fragments :: topbar}"></div>
+<div th:replace="~{shop/fragments :: flash}"></div>
+<main class="container admin-shell">
+    <div th:replace="~{shop/fragments :: adminNav}"></div>
+    <section>
+        <div class="section-title">
+            <div>
+                <p class="section-kicker">Thu ngân</p>
+                <h1>Đơn tại quầy</h1>
+            </div>
+            <a class="btn" th:href="@{/staff/pos}">Tạo đơn tại quầy</a>
+        </div>
+        <div class="admin-tools">
+            <input class="form-control" data-table-search="#posOrdersTable" placeholder="Tìm mã đơn, nhân viên, phương thức">
+        </div>
+        <div class="table-wrap">
+            <table class="table" id="posOrdersTable">
+                <thead>
+                <tr>
+                    <th>Mã đơn</th>
+                    <th>Loại đơn</th>
+                    <th>Nhân viên</th>
+                    <th>Thời gian</th>
+                    <th>Thanh toán</th>
+                    <th>Tổng</th>
+                    <th>Hóa đơn</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${#lists.isEmpty(orders)}">
+                    <td colspan="7" class="muted">Chưa có đơn tại quầy.</td>
+                </tr>
+                <tr th:each="order : ${orders}">
+                    <td><strong th:text="${order.orderCode}">QLCF000001</strong></td>
+                    <td><span class="badge status-info" th:text="${@shopLabels.label(order.orderType)}">Đơn tại quầy</span></td>
+                    <td th:text="${order.createdByStaff != null ? order.createdByStaff.fullName : 'Chưa có'}">Nhân viên</td>
+                    <td th:text="${#temporals.format(order.createdAt, 'dd/MM/yyyy HH:mm')}">31/05/2026 11:00</td>
+                    <td>
+                        <span class="badge status-success"
+                              th:text="|${@shopLabels.label(order.paymentMethod)} / ${@shopLabels.label(order.paymentStatus)}|">Đã thanh toán</span>
+                    </td>
+                    <td th:text="${#numbers.formatDecimal(order.totalAmount,0,'COMMA',0,'POINT')} + ' đ'">0 đ</td>
+                    <td>
+                        <a class="btn secondary small" th:href="@{/staff/pos/orders/{id}(id=${order.id})}">Xem</a>
+                        <a class="btn secondary small" th:href="@{/staff/pos/orders/{id}/receipt(id=${order.id})}">In</a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+</body>
+</html>

@@ -11,6 +11,7 @@ import org.springframework.data.repository.query.Param;
 
 import com.example.Admin.Shop.Model.ShopOrder;
 import com.example.Admin.Shop.Model.ShopOrderStatus;
+import com.example.Admin.Shop.Model.ShopOrderType;
 import com.example.Admin.Shop.Model.ShopUser;
 
 public interface ShopOrderRepository extends JpaRepository<ShopOrder, Long>, JpaSpecificationExecutor<ShopOrder> {
@@ -19,6 +20,10 @@ public interface ShopOrderRepository extends JpaRepository<ShopOrder, Long>, Jpa
     List<ShopOrder> findTop10ByOrderByCreatedAtDesc();
 
     List<ShopOrder> findTop10ByStatusOrderByCreatedAtDesc(ShopOrderStatus status);
+
+    List<ShopOrder> findByOrderTypeInOrderByCreatedAtDesc(List<ShopOrderType> orderTypes);
+
+    List<ShopOrder> findByCreatedByStaffAndOrderTypeInOrderByCreatedAtDesc(ShopUser staff, List<ShopOrderType> orderTypes);
 
     boolean existsByOrderCode(String orderCode);
 

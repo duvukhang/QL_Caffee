@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.example.Admin.Shop.Model.DiscountType;
 import com.example.Admin.Shop.Model.InventoryHistoryType;
 import com.example.Admin.Shop.Model.PaymentMethod;
+import com.example.Admin.Shop.Model.PaymentStatus;
 import com.example.Admin.Shop.Model.ShopBrand;
 import com.example.Admin.Shop.Model.ShopCategory;
 import com.example.Admin.Shop.Model.ShopCoupon;
@@ -76,6 +77,8 @@ public class DataInitializer implements CommandLineRunner {
     private void seedUsers() {
         createUser("admin111", "admin111@store.com", "Quản trị hệ thống", "0900000000",
                 "Hồ Chí Minh", ShopRole.SUPER_ADMIN);
+        createUser("staff1", "staff1@store.com", "Nhân viên thu ngân", "0900000001",
+                "Gusto Coffee", ShopRole.STAFF);
         createUser("customer1", "customer1@store.com", "Nguyễn Khách Một", "0911111111",
                 "12 Nguyễn Trãi, Quận 1", ShopRole.CUSTOMER);
         createUser("customer2", "customer2@store.com", "Trần Khách Hai", "0922222222",
@@ -233,6 +236,9 @@ public class DataInitializer implements CommandLineRunner {
         order.setReceiverPhone(customer.getPhone());
         order.setShippingAddress(customer.getAddress());
         order.setPaymentMethod(PaymentMethod.COD);
+        order.setPaymentStatus(PaymentStatus.PAID);
+        order.setPaidAt(LocalDateTime.now());
+        order.setCompletedAt(LocalDateTime.now());
         order.setStatus(ShopOrderStatus.COMPLETED);
         order.setSubtotal(product.getEffectivePrice());
         order.setDiscountAmount(BigDecimal.ZERO);

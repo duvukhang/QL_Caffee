@@ -1,4 +1,7 @@
 (function () {
+  var EYE_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true" class="password-icon"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"></path><circle cx="12" cy="12" r="3"></circle></svg>';
+  var EYE_OFF_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true" class="password-icon"><path d="M10.7 5.1A10.9 10.9 0 0 1 12 5c6.5 0 10 7 10 7a18.6 18.6 0 0 1-3.2 4.2"></path><path d="M6.6 6.6A18.4 18.4 0 0 0 2 12s3.5 7 10 7c1.8 0 3.3-.5 4.6-1.2"></path><path d="M14.1 14.1A3 3 0 0 1 9.9 9.9"></path><path d="M3 3l18 18"></path></svg>';
+
   function copyText(value, button) {
     function done() {
       var original = button.textContent;
@@ -120,13 +123,19 @@
         return;
       }
 
+      function setToggleState(showing) {
+        button.innerHTML = showing ? EYE_OFF_ICON : EYE_ICON;
+        button.setAttribute("aria-label", showing ? "Ẩn mật khẩu" : "Hiện mật khẩu");
+        button.setAttribute("title", showing ? "Ẩn mật khẩu" : "Hiện mật khẩu");
+        button.setAttribute("aria-pressed", showing ? "true" : "false");
+      }
+
       button.addEventListener("click", function () {
         var showing = input.type === "text";
         input.type = showing ? "password" : "text";
-        button.textContent = showing ? "Hiện" : "Ẩn";
-        button.setAttribute("aria-label", showing ? "Hiện mật khẩu" : "Ẩn mật khẩu");
+        setToggleState(!showing);
       });
-      button.setAttribute("aria-label", "Hiện mật khẩu");
+      setToggleState(input.type === "text");
     });
   }
 

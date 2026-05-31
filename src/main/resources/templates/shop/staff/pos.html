@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tạo đơn tại quầy - QL Caffee</title>
+    <link rel="stylesheet" th:href="@{/css/shop.css}">
+    <script defer th:src="@{/js/pos.js}"></script>
+</head>
+<body>
+<div th:replace="~{shop/fragments :: topbar}"></div>
+<div th:replace="~{shop/fragments :: flash}"></div>
+<main class="container admin-shell">
+    <div th:replace="~{shop/fragments :: adminNav}"></div>
+    <section>
+        <div class="section-title">
+            <div>
+                <p class="section-kicker">Thu ngân</p>
+                <h1>Tạo đơn tại quầy</h1>
+            </div>
+            <a class="btn secondary small" th:href="@{/staff/pos/orders}">Đơn tại quầy</a>
+        </div>
+
+        <div class="pos-shell">
+            <section class="pos-products">
+                <div class="panel pos-filter">
+                    <input class="form-control" id="posSearch" type="search" placeholder="Tìm sản phẩm">
+                    <div class="clearable-select">
+                        <select id="posCategory">
+                            <option value="">Chọn danh mục</option>
+                            <option th:each="category : ${categories}" th:value="${category.name}" th:text="${category.name}">Danh mục</option>
+                        </select>
+                        <button type="button" class="clear-select-btn" aria-label="Xóa lựa chọn">×</button>
+                    </div>
+                </div>
+
+                <div class="pos-product-grid">
+                    <article class="card pos-product-card"
+                             th:each="product : ${products}"
+                             th:data-id="${product.id}"
+                             th:data-name="${product.name}"
+                             th:data-price="${product.effectivePrice}"
+                             th:data-stock="${product.quantity}"
+                             th:data-category="${product.category.name}">
+                        <img th:src="${product.mainImagePath}" th:alt="${product.name}">
+                        <div class="card-body">
+                            <span class="badge" th:text="${product.category.name}">Danh mục</span>
+                            <h3 th:text="${product.name}">Sản phẩm</h3>
+                            <div class="pos-product-meta">
+                                <strong class="price" th:text="${#numbers.formatDecimal(product.effectivePrice,0,'COMMA',0,'POINT')} + ' đ'">0 đ</strong>
+                                <span th:class="${product.quantity > 0 ? 'badge status-success' : 'badge status-danger'}"
+                                      th:text="${product.quantity > 0 ? 'Tồn ' + product.quantity : 'Hết hàng'}">Tồn 0</span>
+                            </div>
+                            <button class="btn small pos-add-btn" type="button"
+                                    th:disabled="${product.quantity <= 0}">
+                                <span th:text="${product.quantity > 0 ? 'Thêm' : 'Hết hàng'}">Thêm</span>
+                            </button>
+                        </div>
+                    </article>
+                </div>
+            </section>
+
+            <aside class="panel pos-ticket">
+                <div class="section-title compact">
+                    <div>
+                        <p class="section-kicker">Hóa đơn</p>
+                        <h2>Hóa đơn tạm thời</h2>
+                    </div>
+                </div>
+                <form th:action="@{/staff/pos/create-order}" method="post" id="posForm"
+                      data-confirm="Xác nhận thanh toán và hoàn thành đơn hàng này?">
+                    <div id="posHiddenItems"></div>
+                    <div class="pos-ticket-list" id="posTicketList">
+                        <p class="muted">Chưa có sản phẩm nào trong hóa đơn.</p>
+                    </div>
+
+                    <div class="field">
+                        <label>Bán hàng</label>
+                        <div class="clearable-select">
+                            <select name="orderType" id="posOrderType" data-enum-select>
+                                <option th:each="type : ${orderTypes}" th:value="${type}" th:text="${@shopLabels.label(type)}">Đơn tại quầy</option>
+                            </select>
+                            <button type="button" class="clear-select-btn" aria-label="Xóa lựa chọn">×</button>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label>Mã khuyến mãi</label>
+                        <div class="coupon-input">
+                            <input class="form-control" name="couponCode" id="posCoupon" placeholder="Nhập mã nếu có">
+                            <button class="btn secondary" type="button" id="posApplyCoupon">Áp mã</button>
+                        </div>
+                        <p class="muted" id="posCouponMessage"></p>
+                    </div>
+
+                    <div class="field">
+                        <label>Phương thức thanh toán</label>
+                        <div class="clearable-select">
+                            <select name="paymentMethod" id="posPaymentMethod" required data-enum-select>
+                                <option value="">Chọn phương thức thanh toán</option>
+                                <option th:each="method : ${paymentMethods}" th:value="${method}" th:text="${@shopLabels.label(method)}">Tiền mặt</option>
+                            </select>
+                            <button type="button" class="clear-select-btn" aria-label="Xóa lựa chọn">×</button>
+                        </div>
+                    </div>
+
+                    <div class="summary-row">
+                        <span>Tạm tính</span>
+                        <strong id="posSubtotal">0 đ</strong>
+                    </div>
+                    <div class="summary-row">
+                        <span>Giảm giá</span>
+                        <strong id="posDiscount">0 đ</strong>
+                    </div>
+                    <div class="summary-row total">
+                        <span>Thành tiền</span>
+                        <strong id="posTotal">0 đ</strong>
+                    </div>
+                    <button class="btn full" id="posSubmit" type="submit" disabled>
+                        Xác nhận thanh toán
+                    </button>
+                </form>
+            </aside>
+        </div>
+    </section>
+</main>
+</body>
+</html>

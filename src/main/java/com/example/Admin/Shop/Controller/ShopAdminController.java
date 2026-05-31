@@ -33,6 +33,7 @@ import com.example.Admin.Shop.Model.ShopCoupon;
 import com.example.Admin.Shop.Model.ShopInventoryHistory;
 import com.example.Admin.Shop.Model.ShopOrder;
 import com.example.Admin.Shop.Model.ShopOrderStatus;
+import com.example.Admin.Shop.Model.ShopOrderType;
 import com.example.Admin.Shop.Model.ShopProduct;
 import com.example.Admin.Shop.Model.ShopProductImage;
 import com.example.Admin.Shop.Model.ShopRole;
@@ -259,7 +260,8 @@ public class ShopAdminController {
     }
 
     @GetMapping("/admin/orders")
-    public String adminOrders(@RequestParam(required = false) ShopOrderStatus status, Model model) {
+    public String adminOrders(@RequestParam(required = false) ShopOrderStatus status,
+            @RequestParam(required = false) ShopOrderType orderType, Model model) {
         ShopUser currentUser = currentUserService.requireUser();
         var baseOrders = currentUser.getRole().canViewAllOrders()
                 ? orderRepository.findAll()
@@ -268,11 +270,14 @@ public class ShopAdminController {
                         .toList();
         var orders = baseOrders.stream()
                 .filter(order -> status == null || order.getStatus() == status)
+                .filter(order -> orderType == null || order.getOrderType() == orderType)
                 .sorted(Comparator.comparing(order -> order.getCreatedAt(), Comparator.nullsLast(Comparator.reverseOrder())))
                 .toList();
         model.addAttribute("orders", orders);
         model.addAttribute("statuses", availableOrderStatuses(currentUser));
+        model.addAttribute("orderTypes", ShopOrderType.values());
         model.addAttribute("status", status);
+        model.addAttribute("orderType", orderType);
         model.addAttribute("canViewAllOrders", currentUser.getRole().canViewAllOrders());
         model.addAttribute("canCancelOrders", currentUser.getRole().canCancelOrders());
         model.addAttribute("orderPageTitle", currentUser.getRole() == ShopRole.STAFF ? "Đơn hàng khách hàng" : "Đơn hàng");

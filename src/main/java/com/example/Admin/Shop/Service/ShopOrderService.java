@@ -16,6 +16,7 @@ import com.example.Admin.Shop.Model.ShopInventoryHistory;
 import com.example.Admin.Shop.Model.ShopOrder;
 import com.example.Admin.Shop.Model.ShopOrderItem;
 import com.example.Admin.Shop.Model.ShopOrderStatus;
+import com.example.Admin.Shop.Model.ShopOrderType;
 import com.example.Admin.Shop.Model.ShopProduct;
 import com.example.Admin.Shop.Model.ShopUser;
 import com.example.Admin.Shop.Repository.ShopInventoryHistoryRepository;
@@ -61,6 +62,7 @@ public class ShopOrderService {
         PaymentMethod selectedPaymentMethod = paymentMethod == null ? PaymentMethod.COD : paymentMethod;
         ShopOrder order = new ShopOrder();
         order.setOrderCode(nextOrderCode());
+        order.setOrderType(ShopOrderType.ONLINE);
         order.setUser(user);
         order.setReceiverName(receiverName);
         order.setReceiverPhone(receiverPhone);
@@ -155,6 +157,9 @@ public class ShopOrderService {
             throw new IllegalArgumentException("Không được nhảy trạng thái sai luồng");
         }
         order.setStatus(nextStatus);
+        if (nextStatus == ShopOrderStatus.COMPLETED) {
+            order.setCompletedAt(LocalDateTime.now());
+        }
         orderRepository.save(order);
     }
 

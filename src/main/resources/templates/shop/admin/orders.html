@@ -26,6 +26,13 @@
                 </select>
                 <button type="button" class="clear-select-btn" aria-label="Xóa lựa chọn">×</button>
             </div>
+            <div class="clearable-select" data-submit-on-clear="true">
+                <select name="orderType" data-enum-select>
+                    <option value="">Chọn loại đơn</option>
+                    <option th:each="type : ${orderTypes}" th:value="${type}" th:selected="${type == orderType}" th:text="${@shopLabels.label(type)}"></option>
+                </select>
+                <button type="button" class="clear-select-btn" aria-label="Xóa lựa chọn">×</button>
+            </div>
             <button class="btn secondary" type="submit">Lọc</button>
         </form>
         <div class="admin-tools mt-16">
@@ -36,7 +43,9 @@
                 <thead>
                 <tr>
                     <th>Mã</th>
+                    <th>Loại đơn</th>
                     <th>Khách</th>
+                    <th>Nhân viên tạo</th>
                     <th>Ngày</th>
                     <th>Tổng</th>
                     <th>Thanh toán</th>
@@ -47,7 +56,9 @@
                 <tbody>
                 <tr th:each="order : ${orders}">
                     <td><a class="admin-order-code" th:href="@{/orders/{id}(id=${order.id})}" th:text="${order.orderCode}">DH</a></td>
-                    <td><span class="cell-text" th:text="${order.user.fullName}">Khách</span></td>
+                    <td><span class="badge status-info" th:text="${@shopLabels.label(order.orderType)}">Đơn online</span></td>
+                    <td><span class="cell-text" th:text="${order.orderType == T(com.example.Admin.Shop.Model.ShopOrderType).ONLINE ? order.user.fullName : 'Khách tại quầy'}">Khách</span></td>
+                    <td><span class="cell-text" th:text="${order.createdByStaff != null ? order.createdByStaff.fullName : 'Không có'}">Nhân viên</span></td>
                     <td th:text="${#temporals.format(order.createdAt, 'dd/MM/yyyy HH:mm')}">Ngày</td>
                     <td th:text="${#numbers.formatDecimal(order.totalAmount,0,'COMMA',0,'POINT')} + ' đ'">0 đ</td>
                     <td>
@@ -61,7 +72,8 @@
                               data-confirm="Bạn có chắc đã nhận tiền chuyển khoản cho đơn hàng này?">
                             <button class="btn small" type="submit">Xác nhận đã nhận tiền</button>
                         </form>
-                        <form th:action="@{/admin/orders/{id}/status(id=${order.id})}" method="post"
+                        <form th:if="${order.orderType == T(com.example.Admin.Shop.Model.ShopOrderType).ONLINE}"
+                              th:action="@{/admin/orders/{id}/status(id=${order.id})}" method="post"
                               class="inline-form admin-status-form"
                               data-confirm="Bạn có chắc muốn cập nhật trạng thái đơn hàng này?">
                             <div class="clearable-select admin-status-select">
@@ -73,6 +85,8 @@
                             </div>
                             <button class="btn secondary small" type="submit">Lưu</button>
                         </form>
+                        <span th:if="${order.orderType != T(com.example.Admin.Shop.Model.ShopOrderType).ONLINE}"
+                              class="badge status-success">Đã hoàn thành</span>
                     </td>
                 </tr>
                 </tbody>

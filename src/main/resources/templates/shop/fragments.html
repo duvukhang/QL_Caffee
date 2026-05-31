@@ -11,7 +11,7 @@
         </a>
         <a class="brand"
            th:if="${currentShopUser != null and currentShopUser.role == T(com.example.Admin.Shop.Model.ShopRole).STAFF}"
-           th:href="@{/admin/orders}">
+           th:href="@{/staff/pos}">
             <span class="brand-mark">GC</span>
             <span>Gusto Coffee</span>
         </a>
@@ -26,6 +26,7 @@
             <a th:if="${currentShopUser != null and currentShopUser.role == T(com.example.Admin.Shop.Model.ShopRole).CUSTOMER}" th:href="@{/cart}">Giỏ hàng</a>
             <a th:if="${currentShopUser != null and currentShopUser.role == T(com.example.Admin.Shop.Model.ShopRole).CUSTOMER}" th:href="@{/orders}">Đơn hàng</a>
             <a th:if="${currentShopUser != null and currentShopUser.role == T(com.example.Admin.Shop.Model.ShopRole).CUSTOMER}" th:href="@{/my-coupons}">Mã của tôi</a>
+            <a th:if="${currentShopUser != null and currentShopUser.role.canUsePos()}" th:href="@{/staff/pos}">Bán tại quầy</a>
             <a th:if="${currentShopUser != null and currentShopUser.role == T(com.example.Admin.Shop.Model.ShopRole).STAFF}" th:href="@{/admin/orders}">Đơn hàng</a>
             <a th:if="${currentShopUser != null and currentShopUser.role.canViewReports()}" th:href="@{/admin/dashboard}">Dashboard</a>
             <a th:if="${currentShopUser != null}" th:href="@{/account}">Tài khoản</a>
@@ -52,6 +53,8 @@
 
 <aside th:fragment="adminNav" class="sidebar">
     <a th:if="${currentShopUser != null and currentShopUser.role.canViewReports()}" th:href="@{/admin/dashboard}">Tổng quan</a>
+    <a th:if="${currentShopUser != null and currentShopUser.role.canUsePos()}" th:href="@{/staff/pos}">Bán tại quầy</a>
+    <a th:if="${currentShopUser != null and currentShopUser.role.canUsePos()}" th:href="@{/staff/pos/orders}">Đơn tại quầy</a>
     <a th:if="${currentShopUser != null and currentShopUser.role.canManageCatalog()}" th:href="@{/admin/categories}">Danh mục</a>
     <a th:if="${currentShopUser != null and currentShopUser.role.canManageCatalog()}" th:href="@{/admin/products}">Sản phẩm</a>
     <a th:if="${currentShopUser != null and currentShopUser.role.canManageInventory()}" th:href="@{/admin/inventory}">Tồn kho</a>

@@ -21,6 +21,8 @@ public interface ShopProductRepository extends JpaRepository<ShopProduct, Long>,
 
     List<ShopProduct> findTop8ByActiveTrueAndSaleProductTrueOrderByCreatedAtDesc();
 
+    List<ShopProduct> findByActiveTrueOrderByNameAsc();
+
     List<ShopProduct> findByQuantityLessThanOrderByQuantityAsc(int quantity);
 
     long countByActiveTrue();
@@ -29,4 +31,7 @@ public interface ShopProductRepository extends JpaRepository<ShopProduct, Long>,
 
     @Query("select p from ShopProduct p left join fetch p.images where p.id = :id")
     Optional<ShopProduct> findDetailById(Long id);
+
+    @Query("select distinct p from ShopProduct p left join fetch p.images left join fetch p.category where p.active = true order by p.name")
+    List<ShopProduct> findActiveWithImagesOrderByNameAsc();
 }

@@ -48,12 +48,14 @@ Mở: `http://localhost:8088`
 ## Tài khoản mẫu
 
 - Admin cao nhất: `admin111 / 123123`
+- Nhân viên thu ngân: `staff1 / 123123`
 - Khách hàng: `customer1 / 123123`
 - Khách hàng: `customer2 / 123123`
 
 ## Chức năng đã dựng cho demo
 
 - Khách hàng: đăng ký, đăng nhập, xem sản phẩm, tìm/lọc/sắp xếp, xem chi tiết, quick view, giỏ hàng, áp coupon, checkout, lịch sử đơn, hủy đơn chờ xác nhận, mã khuyến mãi của tôi, gửi đánh giá sau khi mua.
+- Staff: tạo đơn tại quầy, thêm sản phẩm, kiểm tra tồn kho, áp mã khuyến mãi, chọn tiền mặt/chuyển khoản QR/thẻ/ví điện tử, hoàn thành đơn và in hóa đơn.
 - Admin: dashboard, quản lý danh mục, sản phẩm, tồn kho, coupon, gán coupon riêng cho khách, đơn hàng, người dùng, duyệt/xóa đánh giá.
 - Database: dùng `StoreManagement1`, Hibernate tự sinh/cập nhật bảng `shop_*`, seed dữ liệu mẫu bằng `DataInitializer`.
 - Coupon mẫu: `SALE10`, `GIAM50K`, `VIP20`, `EXPIRED10`.
@@ -64,6 +66,14 @@ Mở: `http://localhost:8088`
 - Khi khách chọn chuyển khoản QR, hệ thống tạo đơn với trạng thái thanh toán `Chờ thanh toán`, hiển thị mã đơn dạng `QLCF000001` làm nội dung chuyển khoản bắt buộc và QR tĩnh tại `src/main/resources/static/img/payment/qr-bank.png`.
 - Vì chạy local cho đồ án nên thanh toán QR dùng cơ chế admin xác nhận thủ công trong trang quản lý đơn hàng.
 - Khi deploy thật có thể tích hợp payOS/SePay webhook để tự động xác nhận giao dịch.
+
+## Bán hàng tại quầy
+
+- Staff đăng nhập sẽ vào `/staff/pos` để tạo đơn tại quầy.
+- Đơn tại quầy dùng `orderType = POS` hoặc `TAKE_AWAY`, `paymentStatus = PAID`, `status = COMPLETED`, có `createdByStaff`, `paidAt`, `completedAt`.
+- Backend tự tính giá, giảm giá, tổng tiền và trừ tồn kho trong transaction; frontend không được gửi tổng tiền để lưu trực tiếp.
+- Hóa đơn đã hoàn thành xem tại `/staff/pos/orders/{id}` và in tại `/staff/pos/orders/{id}/receipt`.
+- Đơn tại quầy xuất hiện trong `/admin/orders`, có cột loại đơn và nhân viên tạo; doanh thu dashboard tính theo đơn hoàn thành nên bao gồm đơn POS.
 
 ## Ghi chú kỹ thuật
 
