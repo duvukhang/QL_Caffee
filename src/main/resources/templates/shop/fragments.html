@@ -6,20 +6,20 @@
         <a class="brand"
            th:if="${currentShopUser == null or currentShopUser.role == T(com.example.Admin.Shop.Model.ShopRole).CUSTOMER}"
            th:href="@{/}">
-            <span class="brand-mark">QC</span>
-            <span>QL Caffee</span>
+            <span class="brand-mark">GC</span>
+            <span>Gusto Coffee</span>
         </a>
         <a class="brand"
            th:if="${currentShopUser != null and currentShopUser.role == T(com.example.Admin.Shop.Model.ShopRole).STAFF}"
            th:href="@{/admin/orders}">
-            <span class="brand-mark">QC</span>
-            <span>QL Caffee</span>
+            <span class="brand-mark">GC</span>
+            <span>Gusto Coffee</span>
         </a>
         <a class="brand"
            th:if="${currentShopUser != null and currentShopUser.role.canViewReports()}"
            th:href="@{/admin/dashboard}">
-            <span class="brand-mark">QC</span>
-            <span>QL Caffee</span>
+            <span class="brand-mark">GC</span>
+            <span>Gusto Coffee</span>
         </a>
         <div class="nav">
             <a th:if="${currentShopUser == null or currentShopUser.role == T(com.example.Admin.Shop.Model.ShopRole).CUSTOMER}" th:href="@{/products}">Sản phẩm</a>
